@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic"; // siempre consulta datos frescos, no cachea
 
 async function getResumen() {
+  const supabase = await createClient();
   if (!supabase) return null;
 
   const [{ count: totalUnidades }, { count: unidadesOcupadas }, { count: totalMovimientos }] =

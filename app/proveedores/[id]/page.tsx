@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { ProveedorForm } from "../ProveedorForm";
 import { editarProveedor, eliminarProveedor } from "../actions";
 
@@ -16,6 +16,7 @@ export default async function EditarProveedorPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const supabase = await createClient();
 
   if (!supabaseConfigured || !supabase) {
     return (

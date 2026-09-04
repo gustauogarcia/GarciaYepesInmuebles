@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { ProveedorForm } from "./ProveedorForm";
 import { crearProveedor } from "./actions";
 
@@ -26,6 +26,7 @@ type ProveedorRow = {
 };
 
 async function getDatos() {
+  const supabase = await createClient();
   if (!supabase) return null;
 
   const [{ data: categorias, error: errorCategorias }, { data: edificios, error: errorEdificios }, { data: unidades, error: errorUnidades }, { data: proveedores, error: errorProveedores }] =

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 export type EstadoFormulario = {
   ok: boolean;
@@ -28,6 +28,7 @@ export async function crearProveedor(
   _estadoAnterior: EstadoFormulario,
   formData: FormData
 ): Promise<EstadoFormulario> {
+  const supabase = await createClient();
   if (!supabase) {
     return { ok: false, mensaje: "La base de datos no está conectada." };
   }
@@ -52,6 +53,7 @@ export async function editarProveedor(
   _estadoAnterior: EstadoFormulario,
   formData: FormData
 ): Promise<EstadoFormulario> {
+  const supabase = await createClient();
   if (!supabase) {
     return { ok: false, mensaje: "La base de datos no está conectada." };
   }
@@ -73,6 +75,7 @@ export async function editarProveedor(
 }
 
 export async function eliminarProveedor(id: string) {
+  const supabase = await createClient();
   if (!supabase) return;
   await supabase.from("proveedores").delete().eq("id", id);
   revalidatePath("/proveedores");

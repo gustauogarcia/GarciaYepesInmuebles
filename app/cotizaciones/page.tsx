@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { CotizacionForm } from "./CotizacionForm";
 import { crearCotizacion } from "./actions";
 
@@ -27,6 +27,7 @@ const formatoCOP = new Intl.NumberFormat("es-CO", {
 });
 
 async function getDatos() {
+  const supabase = await createClient();
   if (!supabase) return null;
 
   const [

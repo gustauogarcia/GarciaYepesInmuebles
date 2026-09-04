@@ -1,4 +1,4 @@
-import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,7 @@ type Inquilino = {
 };
 
 async function getUnidades() {
+  const supabase = await createClient();
   if (!supabase) return null;
 
   const { data: unidades, error: errorUnidades } = await supabase

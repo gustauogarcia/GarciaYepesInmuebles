@@ -41,3 +41,20 @@ No hace falta correr nada en tu computadora para esto. En Vercel:
 
 Cada vez que se suba una actualización del código a GitHub, Vercel vuelve a
 publicar la app sola — no hay que repetir estos pasos.
+
+## Inicio de sesión
+
+La app ahora pide iniciar sesión antes de mostrar cualquier información
+(antes cualquiera con el link podía ver y editar los datos). El acceso se
+maneja desde Supabase, no desde el código:
+
+1. En el panel de Supabase: **Authentication > Users > Add user > Invite
+   user**, con tu correo.
+2. Te llega un correo de Supabase para elegir tu propia contraseña. Ese
+   correo y esa contraseña son los que usas para entrar en
+   `https://garcia-yepes-inmuebles.vercel.app/login`.
+3. Si en el futuro necesitas dar acceso a alguien más (ej. un administrador
+   de confianza), repites el mismo paso con su correo — no hace falta tocar
+   el código.
+
+Nadie más puede ver ni modificar los datos sin haber iniciado sesión.
