@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 import { ProveedorForm } from "./ProveedorForm";
+import { crearProveedor } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -10,37 +12,52 @@ type CategoriaRow = {
   orden: number;
 };
 
+type UnidadRow = { id: string; codigo: string };
+type EdificioRow = { id: string; nombre: string };
+
 type ProveedorRow = {
   id: string;
   nombre: string;
-  documento: string | null;
   contacto_nombre: string | null;
   telefono: string | null;
-  email: string | null;
-  activo: boolean;
   categorias_proveedor: { categoria: string; subcategoria: string } | null;
+  edificios: { nombre: string } | null;
+  unidades: { codigo: string } | null;
 };
 
 async function getDatos() {
   if (!supabase) return null;
 
-  const { data: categorias, error: errorCategorias } = await supabase
-    .from("categorias_proveedor")
-    .select("id, categoria, subcategoria, orden")
-    .order("orden");
+  const [{ data: categorias, error: errorCategorias }, { data: edificios, error: errorEdificios }, { data: unidades, error: errorUnidades }, { data: proveedores, error: errorProveedores }] =
+    await Promise.all([
+      supabase.from("categorias_proveedor").select("id, categoria, subcategoria, orden").order("orden"),
+      supabase.from("edificios").select("id, nombre").order("nombre"),
+      supabase.from("unidades").select("id, codigo, edificio_id").order("codigo"),
+      supabase
+        .from("proveedores")
+        .select(
+          "id, nombre, contacto_nombre, telefono, categorias_proveedor(categoria, subcategoria), edificios(nombre), unidades(codigo)"
+        )
+        .order("nombre"),
+    ]);
 
-  const { data: proveedores, error: errorProveedores } = await supabase
-    .from("proveedores")
-    .select(
-      "id, nombre, documento, contacto_nombre, telefono, email, activo, categorias_proveedor(categoria, subcategoria)"
-    )
-    .order("nombre");
-
-  if (errorCategorias || errorProveedores) return null;
+  if (errorCategorias || errorEdificios || errorUnidades || errorProveedores) return null;
 
   const grupos = agruparCategorias((categorias as CategoriaRow[]) ?? []);
 
-  return { grupos, proveedores: (proveedores as unknown as ProveedorRow[]) ?? [] };
+  const edificiosConUnidades = ((edificios as EdificioRow[]) ?? []).map((e) => ({
+    id: e.id,
+    nombre: e.nombre,
+    unidades: ((unidades as (UnidadRow & { edificio_id: string })[]) ?? [])
+      .filter((u) => u.edificio_id === e.id)
+      .map((u) => ({ id: u.id, codigo: u.codigo })),
+  }));
+
+  return {
+    grupos,
+    edificios: edificiosConUnidades,
+    proveedores: (proveedores as unknown as ProveedorRow[]) ?? [],
+  };
 }
 
 function agruparCategorias(categorias: CategoriaRow[]) {
@@ -74,7 +91,7 @@ export default async function ProveedoresPage() {
       {datos && (
         <>
           <div className="mt-8">
-            <ProveedorForm grupos={datos.grupos} />
+            <ProveedorForm grupos={datos.grupos} edificios={datos.edificios} accion={crearProveedor} />
           </div>
 
           <h2 className="mt-10 text-lg font-medium text-zinc-900 dark:text-zinc-50">
@@ -90,8 +107,9 @@ export default async function ProveedoresPage() {
                   <tr>
                     <th className="px-4 py-3 font-medium">Nombre</th>
                     <th className="px-4 py-3 font-medium">Categoría</th>
+                    <th className="px-4 py-3 font-medium">Edificio / apto</th>
                     <th className="px-4 py-3 font-medium">Contacto</th>
-                    <th className="px-4 py-3 font-medium">Teléfono</th>
+                    <th className="px-4 py-3 font-medium"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -104,10 +122,19 @@ export default async function ProveedoresPage() {
                         {p.categorias_proveedor?.subcategoria ?? "—"}
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                        {p.contacto_nombre ?? "—"}
+                        {p.edificios?.nombre ?? "—"}
+                        {p.unidades?.codigo ? ` · Apto ${p.unidades.codigo}` : ""}
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                        {p.telefono ?? "—"}
+                        {p.contacto_nombre ?? p.telefono ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/proveedores/${p.id}`}
+                          className="text-xs font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                        >
+                          Editar
+                        </Link>
                       </td>
                     </tr>
                   ))}
