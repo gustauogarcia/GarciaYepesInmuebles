@@ -4,6 +4,7 @@ const links = [
   { href: "/", label: "Resumen" },
   { href: "/unidades", label: "Unidades" },
   { href: "/proveedores", label: "Proveedores" },
+  { href: "/cotizaciones", label: "Cotizaciones" },
 ];
 
 export function NavBar() {
