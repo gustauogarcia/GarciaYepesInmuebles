@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic"; // siempre consulta datos frescos, no cachea
@@ -32,14 +33,10 @@ export default async function Home() {
   const resumen = supabaseConfigured ? await getResumen() : null;
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans">
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-          Blanco y Negro
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Administración del edificio
-        </h1>
+    <main className="mx-auto max-w-3xl px-6 py-16">
+      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        Administración del edificio
+      </h1>
 
         {!supabaseConfigured && (
           <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
@@ -81,12 +78,12 @@ export default async function Home() {
         )}
 
         <p className="mt-10 text-sm text-zinc-500 dark:text-zinc-400">
-          Esta pantalla es solo para confirmar que la app está conectada a la base de datos real
-          en Supabase. Las siguientes pantallas (unidades, inquilinos, movimientos, proveedores)
-          se construyen sobre esta misma base.
+          Este resumen confirma que la app está conectada a la base de datos real en Supabase.{" "}
+          <Link href="/unidades" className="underline">
+            Ver el detalle de las unidades →
+          </Link>
         </p>
-      </main>
-    </div>
+    </main>
   );
 }
 
