@@ -81,7 +81,11 @@ export default async function Home() {
         <p className="mt-10 text-sm text-zinc-500 dark:text-zinc-400">
           Este resumen confirma que la app está conectada a la base de datos real en Supabase.{" "}
           <Link href="/unidades" className="underline">
-            Ver el detalle de las unidades →
+            Ver el detalle de las unidades
+          </Link>{" "}
+          ·{" "}
+          <Link href="/movimientos" className="underline">
+            Ver el libro de caja →
           </Link>
         </p>
     </main>
