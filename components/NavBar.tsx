@@ -5,6 +5,7 @@ import { cerrarSesion } from "@/app/login/actions";
 const links = [
   { href: "/", label: "Resumen" },
   { href: "/unidades", label: "Unidades" },
+  { href: "/inquilinos", label: "Inquilinos" },
   { href: "/movimientos", label: "Movimientos" },
   { href: "/proveedores", label: "Proveedores" },
   { href: "/cotizaciones", label: "Cotizaciones" },
