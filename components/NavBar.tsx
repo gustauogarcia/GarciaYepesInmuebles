@@ -3,7 +3,8 @@ import { getUsuarioActual } from "@/lib/supabase/server";
 import { cerrarSesion } from "@/app/login/actions";
 
 const links = [
-  { href: "/", label: "Resumen" },
+  { href: "/", label: "Dashboard" },
+  { href: "/edificios", label: "Propiedades" },
   { href: "/unidades", label: "Unidades" },
   { href: "/inquilinos", label: "Inquilinos" },
   { href: "/movimientos", label: "Movimientos" },
