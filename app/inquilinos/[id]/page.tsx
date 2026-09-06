@@ -46,6 +46,22 @@ export default async function EditarInquilinoPage({
 
   if (!inquilino) notFound();
 
+  // Si esta misma unidad tuvo un inquilino posterior a este, sus pagos de
+  // renta no deben aparecer aquí: se cortan en la fecha en que empezó ese
+  // siguiente contrato.
+  let siguienteInicio: string | null = null;
+  if (inquilino.fecha_inicio_contrato) {
+    const { data: siguientes } = await supabase
+      .from("inquilinos")
+      .select("fecha_inicio_contrato")
+      .eq("unidad_id", inquilino.unidad_id)
+      .neq("id", id)
+      .gt("fecha_inicio_contrato", inquilino.fecha_inicio_contrato)
+      .order("fecha_inicio_contrato", { ascending: true })
+      .limit(1);
+    siguienteInicio = siguientes?.[0]?.fecha_inicio_contrato ?? null;
+  }
+
   const edificiosConUnidades = ((edificios as EdificioRow[]) ?? []).map((e) => ({
     id: e.id,
     nombre: e.nombre,
@@ -67,6 +83,9 @@ export default async function EditarInquilinoPage({
       .order("fecha", { ascending: false });
     if (inquilino.fecha_inicio_contrato) {
       consulta = consulta.gte("fecha", inquilino.fecha_inicio_contrato);
+    }
+    if (siguienteInicio) {
+      consulta = consulta.lt("fecha", siguienteInicio);
     }
     const { data } = await consulta;
     pagos = (data as PagoRentaRow[]) ?? [];
@@ -172,8 +191,11 @@ export default async function EditarInquilinoPage({
             </table>
           </div>
           <p className="mt-2 text-xs text-stone-400">
-            Se considera &quot;a tiempo&quot; un pago hecho hasta 10 días después del mismo día del mes en que
-            empezó el contrato. Se asume que cada pago corresponde al mes en que se registró.
+            Solo se muestran los pagos de renta de esta unidad hechos desde que empezó este contrato
+            {siguienteInicio ? " y antes de que empezara el siguiente inquilino de esa unidad" : ""} —
+            los pagos de otros inquilinos de la misma unidad no aparecen aquí. Se considera &quot;a tiempo&quot;
+            un pago hecho hasta 10 días después del mismo día del mes en que empezó el contrato. Se
+            asume que cada pago corresponde al mes en que se registró.
           </p>
         </>
       )}
