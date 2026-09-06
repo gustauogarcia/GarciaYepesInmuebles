@@ -132,8 +132,8 @@ export default async function EditarInquilinoPage({
           <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
             {pagos.length} pago(s) por {formatoCOP.format(totalPagado)} en total
             {totalAtrasos > 0
-              ? ` · ${totalAtrasos} llegó(aron) más de ${5} días después de la fecha esperada`
-              : " · ninguno atrasado más de 5 días"}
+              ? ` · ${totalAtrasos} llegó(aron) más de 10 días después de la fecha esperada`
+              : " · ninguno atrasado más de 10 días"}
             .
           </p>
           <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
@@ -172,7 +172,7 @@ export default async function EditarInquilinoPage({
             </table>
           </div>
           <p className="mt-2 text-xs text-stone-400">
-            Se considera &quot;a tiempo&quot; un pago hecho hasta 5 días después del mismo día del mes en que
+            Se considera &quot;a tiempo&quot; un pago hecho hasta 10 días después del mismo día del mes en que
             empezó el contrato. Se asume que cada pago corresponde al mes en que se registró.
           </p>
         </>
