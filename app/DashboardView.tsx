@@ -280,6 +280,71 @@ export function DashboardView({
         </details>
       </div>
 
+      <div className="mt-6 rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
+        <h2 className="text-sm font-medium text-stone-900 dark:text-stone-50">
+          Flujo de caja proyectado — próximos 3 meses
+        </h2>
+        <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+          Proyección simple: ingresos = renta vigente de las unidades ocupadas hoy; egresos =
+          promedio de los últimos 3 meses completos. No contempla renovaciones de contrato,
+          ajustes de canon por inflación, ni gastos extraordinarios — es un punto de partida, no
+          una predicción exacta.
+        </p>
+        <div className="mt-2">
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={m.flujoProyectado}>
+              <CartesianGrid stroke="var(--grid-line)" vertical={false} />
+              <XAxis
+                dataKey="mes"
+                stroke="var(--text-muted)"
+                tickLine={false}
+                axisLine={{ stroke: "var(--axis-line)" }}
+                fontSize={12}
+              />
+              <YAxis
+                stroke="var(--text-muted)"
+                tickLine={false}
+                axisLine={false}
+                fontSize={12}
+                width={52}
+                tickFormatter={formatoCorto}
+              />
+              <Tooltip content={<TooltipMoneda />} cursor={{ fill: "var(--grid-line)", opacity: 0.5 }} />
+              <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} />
+              <Bar dataKey="ingreso" name="Ingresos proyectados" fill="var(--series-1)" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="egreso" name="Egresos proyectados" fill="var(--series-2)" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300">
+            Ver como tabla
+          </summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-stone-500">
+                <tr>
+                  <th className="py-1 pr-4">Mes</th>
+                  <th className="py-1 pr-4 text-right">Ingresos</th>
+                  <th className="py-1 pr-4 text-right">Egresos</th>
+                  <th className="py-1 text-right">Saldo proyectado</th>
+                </tr>
+              </thead>
+              <tbody className="text-stone-700 dark:text-stone-300">
+                {m.flujoProyectado.map((f) => (
+                  <tr key={f.mes} className="border-t border-stone-100 dark:border-stone-900">
+                    <td className="py-1 pr-4">{f.mes}</td>
+                    <td className="py-1 pr-4 text-right tabular-nums">{formatoCOP.format(f.ingreso)}</td>
+                    <td className="py-1 pr-4 text-right tabular-nums">{formatoCOP.format(f.egreso)}</td>
+                    <td className="py-1 text-right tabular-nums">{formatoCOP.format(f.saldo)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+
       {m.gastosPorCategoria.length > 0 && (
         <div className="mt-6 rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
           <h2 className="text-sm font-medium text-stone-900 dark:text-stone-50">

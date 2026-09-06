@@ -39,6 +39,7 @@ export type ObligacionAgg = {
 export type CategoriaAgg = { id: string; nombre: string; tipo: string };
 
 export type SerieMes = { mes: string; ingreso: number; egreso: number };
+export type MesProyectado = { mes: string; ingreso: number; egreso: number; saldo: number };
 export type CategoriaMonto = { nombre: string; monto: number; pct: number };
 export type Alerta = { severidad: "critical" | "warning"; mensaje: string };
 
@@ -62,6 +63,7 @@ export type MetricasPropiedad = {
   pagosDuenosTotal: number;
   pagosDuenosYTD: number;
   serieMensual: SerieMes[];
+  flujoProyectado: MesProyectado[];
   gastosPorCategoria: CategoriaMonto[];
   alertas: Alerta[];
 };
@@ -113,6 +115,28 @@ export function calcularMesContrato(fechaInicioContrato: string, hoy: Date): num
   const inicio = new Date(fechaInicioContrato + "T00:00:00");
   const meses = mesesTranscurridos(inicio, hoy);
   return (meses % 12) + 1;
+}
+
+const DIAS_GRACIA_RENTA = 5;
+
+export type AtrasoPago = { atrasado: boolean; diasAtraso: number };
+
+/**
+ * Compara la fecha de un pago de renta contra la fecha esperada: el mismo
+ * día del mes que la fecha de inicio del contrato (con el mismo ajuste de
+ * fin de mes que el ciclo de 12 meses), más unos días de gracia. Se asume
+ * que el pago corresponde al mes en que se registró.
+ */
+export function calcularAtrasoPago(fechaInicioContrato: string, fechaPago: string): AtrasoPago {
+  const inicio = new Date(fechaInicioContrato + "T00:00:00");
+  const pago = new Date(fechaPago + "T00:00:00");
+  const diaEsperado = inicio.getDate();
+  const ultimoDiaMesPago = new Date(pago.getFullYear(), pago.getMonth() + 1, 0).getDate();
+  const diaBase = Math.min(diaEsperado, ultimoDiaMesPago);
+  const fechaLimite = new Date(pago.getFullYear(), pago.getMonth(), diaBase);
+  fechaLimite.setDate(fechaLimite.getDate() + DIAS_GRACIA_RENTA);
+  const diasAtraso = Math.round((pago.getTime() - fechaLimite.getTime()) / (1000 * 60 * 60 * 24));
+  return { atrasado: diasAtraso > 0, diasAtraso: Math.max(0, diasAtraso) };
 }
 
 export function calcularMetricas({
@@ -248,6 +272,34 @@ export function calcularMetricas({
     });
   }
 
+  // Flujo de caja proyectado (próximos 3 meses): proyección simple que
+  // asume que la renta potencial actual se sigue cobrando igual (unidades
+  // ocupadas × renta vigente) y que los egresos siguen el promedio de los
+  // últimos 3 meses ya completos (sin contar el mes en curso, que puede
+  // estar incompleto). No contempla renovaciones, ajustes de canon por
+  // inflación, ni gastos extraordinarios — es un punto de partida, no una
+  // predicción exacta.
+  const NUM_MESES_PROYECCION = 3;
+  const mesesPreviosCompletos = serieMensual.slice(-(NUM_MESES_PROYECCION + 1), -1);
+  const egresoPromedio =
+    mesesPreviosCompletos.length > 0
+      ? mesesPreviosCompletos.reduce((s, mes) => s + mes.egreso, 0) / mesesPreviosCompletos.length
+      : 0;
+  const flujoProyectado: MesProyectado[] = [];
+  let saldoAcumuladoProyectado = saldoActual;
+  for (let i = 1; i <= NUM_MESES_PROYECCION; i++) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+    const ingreso = rentaPotencialMensual;
+    const egreso = Math.round(egresoPromedio);
+    saldoAcumuladoProyectado += ingreso - egreso;
+    flujoProyectado.push({
+      mes: `${MESES_ABR[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`,
+      ingreso,
+      egreso,
+      saldo: saldoAcumuladoProyectado,
+    });
+  }
+
   // Top 5 categorías de gasto (año en curso) + "Otros", con su % del total.
   const categoriasOrdenadas = Array.from(porCategoriaEgreso.entries()).sort((a, b) => b[1] - a[1]);
   const top = categoriasOrdenadas.slice(0, 5);
@@ -338,6 +390,7 @@ export function calcularMetricas({
     pagosDuenosTotal,
     pagosDuenosYTD,
     serieMensual,
+    flujoProyectado,
     gastosPorCategoria,
     alertas,
   };
