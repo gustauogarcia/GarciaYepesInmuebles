@@ -15,6 +15,7 @@ const links = [
   // "Impuestos" (obligaciones_regulatorias) se quita del menú a pedido: por
   // ahora esa información se registra en Movimientos con la categoría
   // "Impuestos". La pantalla sigue en /obligaciones por si se retoma después.
+  { href: "/ayuda", label: "Ayuda" },
 ];
 
 export async function NavBar() {
