@@ -83,7 +83,7 @@ function normalizarTexto(s: string): string {
 
 // Búsqueda por texto libre en el concepto del movimiento — no por categoría,
 // porque un gasto de remodelación (materiales, mano de obra) puede quedar
-// contabilizado en "Retiros / Socios" sin que eso sea plata que se le pagó
+// contabilizado en "Pagos a socios" sin que eso sea plata que se le pagó
 // a los dueños; solo cuenta como pago a los dueños si el concepto de verdad
 // nombra a Piedad, a Gustauo (con o sin apellido) o a "socios".
 function esPagoADuenos(texto: string): boolean {
@@ -155,7 +155,12 @@ export function calcularMetricas({
   const mesAnteriorDate = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
   const mesAnteriorClave = `${mesAnteriorDate.getFullYear()}-${String(mesAnteriorDate.getMonth() + 1).padStart(2, "0")}`;
   const categoriaRentaId = categorias.find((c) => c.nombre === "Renta")?.id;
-  const categoriaRetirosSociosId = categorias.find((c) => c.nombre === "Retiros / Socios")?.id;
+  // Se acepta el nombre nuevo ("Pagos a socios") y el viejo ("Retiros /
+  // Socios") para que esto siga funcionando aunque todavía no hayas corrido
+  // la migración 006 que renombra la categoría en Supabase.
+  const categoriaPagosSociosId = categorias.find(
+    (c) => c.nombre === "Pagos a socios" || c.nombre === "Retiros / Socios"
+  )?.id;
 
   let ingresosMes = 0;
   let egresosMes = 0;
@@ -191,13 +196,13 @@ export function calcularMetricas({
         pagosDuenosTotal += monto;
         if (anio === anioActual) pagosDuenosYTD += monto;
       } else if (RE_ADMIN_JAIME.test(texto)) {
-        // Un pago a Jaime Yepes contabilizado en "Retiros / Socios" (p. ej. un
+        // Un pago a Jaime Yepes contabilizado en "Pagos a socios" (p. ej. un
         // bono autorizado por los socios) cuenta como pago a los dueños, no
         // como gasto de administración — la categoría decide solo en este
         // caso puntual, nunca para gastos que no mencionan a Jaime ni a los
-        // dueños (esos, aunque estén en Retiros/Socios, no se cuentan aquí).
-        const esRetirosSocios = Boolean(categoriaRetirosSociosId) && m.categoria_id === categoriaRetirosSociosId;
-        if (esRetirosSocios) {
+        // dueños (esos, aunque estén en Pagos a socios, no se cuentan aquí).
+        const esPagosSocios = Boolean(categoriaPagosSociosId) && m.categoria_id === categoriaPagosSociosId;
+        if (esPagosSocios) {
           pagosDuenosTotal += monto;
           if (anio === anioActual) pagosDuenosYTD += monto;
         } else {

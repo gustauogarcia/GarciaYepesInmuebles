@@ -19,10 +19,10 @@ const SECCIONES: Seccion[] = [
     titulo: "Dashboard",
     parrafos: [
       "Es el resumen ejecutivo: arriba puedes elegir ver \"Todas las propiedades\" (consolidado) o una propiedad específica.",
-      "Ocupación: cuántas unidades están ocupadas sobre el total. Ingresos/Egresos del mes: con la variación en % contra el mes anterior. Saldo de caja: el acumulado histórico de ingresos menos egresos. Recaudo de renta: cuánto de la renta potencial de las unidades ocupadas ya se cobró este mes. Utilidad y Margen YTD (\"year to date\"): lo que va ganado en el año en curso, en pesos y en %. Administración / Jaime Yepes y Pagos a los dueños: cuánto se ha pagado este año (y en total) por esos dos conceptos específicos.",
+      "Ocupación: cuántas unidades están ocupadas sobre el total. Ingresos/Egresos del mes: con la variación en % contra el mes anterior. Saldo de caja: el acumulado histórico de ingresos menos egresos. Recaudo de renta: cuánto de la renta potencial de las unidades ocupadas ya se cobró este mes. Utilidad y Margen YTD (\"year to date\"): lo que va ganado en el año en curso, en pesos y en %. Pago por servicio de administración y Pagos a socios: cuánto se ha pagado este año (y en total) por esos dos conceptos específicos.",
       "Las alertas rojas y amarillas avisan de: obligaciones vencidas o próximas a vencer, unidades ocupadas sin un ingreso de renta registrado este mes, y contratos que cumplen un año y deben renovarse ajustando el canon por inflación.",
     ],
-    tip: "Para que las tarjetas de \"Administración / Jaime Yepes\" y \"Pagos a los dueños\" salgan correctas, al registrar el movimiento en Movimientos escribe el nombre directamente en el Concepto: \"Jaime Yepes\" o \"administración\" para el primero; \"Piedad\", \"Gustauo\" o \"socios\" para el segundo. La app busca esas palabras en el texto que escribas, así que entre más claro el concepto, más preciso el reporte.",
+    tip: "Para que las tarjetas de \"Pago por servicio de administración\" y \"Pagos a socios\" salgan correctas, al registrar el movimiento en Movimientos usa esas mismas categorías y, además, escribe el nombre directamente en el Concepto: \"Jaime Yepes\" o \"administración\" para el primero; \"Piedad\", \"Gustauo\" o \"socios\" para el segundo. La app busca esas palabras en el texto que escribas, así que entre más claro el concepto, más preciso el reporte.",
   },
   {
     id: "propiedades-unidades",
@@ -47,7 +47,7 @@ const SECCIONES: Seccion[] = [
     titulo: "Movimientos",
     parrafos: [
       "Es el libro de caja: cada ingreso y egreso, con fecha, categoría, concepto, comprobante y monto. La tabla muestra también el saldo acumulado después de cada movimiento.",
-      "Las categorías de egreso incluyen Nómina y honorarios, Retiros / Socios, Mantenimiento, Mejoras/Remodelación, Reparaciones, Servicios y Reguladores e Impuestos (para catastro, predial, valorización — la pantalla de Impuestos está en pausa, así que eso se registra aquí).",
+      "Las categorías de egreso incluyen Pago por servicio de administración, Pagos a socios, Mantenimiento, Mejoras/Remodelación, Reparaciones, Servicios y Reguladores e Impuestos (para catastro, predial, valorización — la pantalla de Impuestos está en pausa, así que eso se registra aquí).",
     ],
     tip: "Escribe el concepto de forma clara y, en lo posible, con las mismas palabras cada vez (por ejemplo siempre \"Renta Apto 302\" o \"Pago administración Jaime Yepes\"). El Dashboard —y cualquier reporte que construyamos más adelante— lee ese texto para clasificar los pagos automáticamente, así que un concepto consistente hace que los números salgan bien sin que tengas que revisar nada a mano.",
   },

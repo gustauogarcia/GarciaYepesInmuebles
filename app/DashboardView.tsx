@@ -205,22 +205,22 @@ export function DashboardView({
           sub="Utilidad como % de los ingresos del año"
         />
         <StatTile
-          label="Administración / Jaime Yepes"
+          label="Pago por servicio de administración"
           value={formatoCOP.format(m.pagosAdminJaimeYTD)}
           sub={`Este año · acumulado ${formatoCOP.format(m.pagosAdminJaimeTotal)}`}
         />
         <StatTile
-          label="Pagos a los dueños (socios)"
+          label="Pagos a socios"
           value={formatoCOP.format(m.pagosDuenosYTD)}
           sub={`Este año · acumulado ${formatoCOP.format(m.pagosDuenosTotal)}`}
         />
       </div>
       <p className="mt-2 text-xs text-stone-400">
-        &quot;Pagos a los dueños&quot; suma los egresos cuyo concepto en Movimientos menciona a Piedad o a
-        Gustauo (con o sin apellido) o a socios. &quot;Administración / Jaime Yepes&quot; suma los egresos
-        cuyo concepto menciona administración, admon o Jaime Yepes — salvo que estén registrados en
-        la categoría &quot;Retiros / Socios&quot; (p. ej. un bono a Jaime autorizado por los socios), en
-        cuyo caso también cuentan como pago a los dueños.
+        &quot;Pagos a socios&quot; suma los egresos cuyo concepto en Movimientos menciona a Piedad o a
+        Gustauo (con o sin apellido) o a socios. &quot;Pago por servicio de administración&quot; suma los
+        egresos cuyo concepto menciona administración, admon o Jaime Yepes — salvo que estén
+        registrados en la categoría &quot;Pagos a socios&quot; (p. ej. un bono a Jaime autorizado por los
+        socios), en cuyo caso también cuentan como pago a socios.
       </p>
 
       <div className="mt-8 rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
