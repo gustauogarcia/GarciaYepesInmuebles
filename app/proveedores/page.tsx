@@ -102,7 +102,7 @@ export default async function ProveedoresPage() {
           </h2>
 
           {datos.proveedores.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
+            <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
               <table className="w-full text-left text-sm">
                 <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
                   <tr>

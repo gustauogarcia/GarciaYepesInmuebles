@@ -14,7 +14,13 @@ type EdificioRow = {
   pct_administracion: number;
 };
 
-type UnidadRow = { edificio_id: string };
+type UnidadRow = { edificio_id: string; estado: string; renta_vigente: number };
+
+const formatoCOP = new Intl.NumberFormat("es-CO", {
+  style: "currency",
+  currency: "COP",
+  maximumFractionDigits: 0,
+});
 
 async function getDatos() {
   const supabase = await createClient();
@@ -25,17 +31,24 @@ async function getDatos() {
       .from("edificios")
       .select("id, nombre, direccion, ciudad, pais, pct_administracion")
       .order("nombre"),
-    supabase.from("unidades").select("edificio_id"),
+    supabase.from("unidades").select("edificio_id, estado, renta_vigente"),
   ]);
 
   if (error) return null;
 
   const unidadesPorEdificio = new Map<string, number>();
+  const rentaOcupadaPorEdificio = new Map<string, number>();
   for (const u of (unidades as UnidadRow[]) ?? []) {
     unidadesPorEdificio.set(u.edificio_id, (unidadesPorEdificio.get(u.edificio_id) ?? 0) + 1);
+    if (u.estado === "Ocupado") {
+      rentaOcupadaPorEdificio.set(
+        u.edificio_id,
+        (rentaOcupadaPorEdificio.get(u.edificio_id) ?? 0) + Number(u.renta_vigente || 0)
+      );
+    }
   }
 
-  return { edificios: (edificios as EdificioRow[]) ?? [], unidadesPorEdificio };
+  return { edificios: (edificios as EdificioRow[]) ?? [], unidadesPorEdificio, rentaOcupadaPorEdificio };
 }
 
 export default async function EdificiosPage() {
@@ -72,13 +85,14 @@ export default async function EdificiosPage() {
             {datos.edificios.length} propiedad(es) registrada(s)
           </h2>
 
-          <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
             <table className="w-full text-left text-sm">
               <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
                 <tr>
                   <th className="px-4 py-3 font-medium">Propiedad</th>
                   <th className="px-4 py-3 font-medium text-right">Unidades</th>
                   <th className="px-4 py-3 font-medium text-right">% Admin.</th>
+                  <th className="px-4 py-3 font-medium text-right">Potencial admón. (mes)</th>
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
@@ -98,6 +112,16 @@ export default async function EdificiosPage() {
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-stone-600 dark:text-stone-400">
                       {(e.pct_administracion * 100).toFixed(0)}%
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="tabular-nums font-medium text-stone-900 dark:text-stone-50">
+                        {formatoCOP.format(
+                          (datos.rentaOcupadaPorEdificio.get(e.id) ?? 0) * e.pct_administracion
+                        )}
+                      </span>
+                      <span className="block text-xs text-stone-400">
+                        sobre {formatoCOP.format(datos.rentaOcupadaPorEdificio.get(e.id) ?? 0)} de renta ocupada
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link

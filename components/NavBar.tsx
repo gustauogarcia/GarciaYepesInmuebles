@@ -23,32 +23,37 @@ export async function NavBar() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-stone-200 bg-white/90 backdrop-blur dark:border-stone-800 dark:bg-stone-950/90">
-      <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4">
-        <span className="font-mono text-xs font-semibold uppercase tracking-widest text-stone-700 dark:text-stone-300">
-          García-Yepes Inmuebles
-        </span>
-        <div className="flex flex-1 flex-wrap gap-x-4 gap-y-1 text-sm">
+      <div className="mx-auto max-w-5xl px-6 py-3">
+        <div className="flex items-center justify-between gap-4">
+          <span className="font-mono text-xs font-semibold uppercase tracking-widest text-stone-700 dark:text-stone-300">
+            García-Yepes Inmuebles
+          </span>
+          {usuario && (
+            <form action={cerrarSesion}>
+              <button
+                type="submit"
+                className="whitespace-nowrap text-xs text-stone-500 underline hover:text-stone-900 dark:hover:text-stone-50"
+              >
+                Cerrar sesión
+              </button>
+            </form>
+          )}
+        </div>
+        {/* Fila de navegación aparte, con scroll horizontal propio: en
+            celular queda como una sola línea deslizable en vez de un menú
+            que salta de tamaño según cuántos enlaces quepan por fila. */}
+        <nav className="-mx-1 mt-2 flex gap-x-4 gap-y-1 overflow-x-auto whitespace-nowrap px-1 pb-1 text-sm">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-stone-600 hover:text-stone-950 dark:text-stone-400 dark:hover:text-stone-50"
+              className="shrink-0 text-stone-600 hover:text-stone-950 dark:text-stone-400 dark:hover:text-stone-50"
             >
               {link.label}
             </Link>
           ))}
-        </div>
-        {usuario && (
-          <form action={cerrarSesion}>
-            <button
-              type="submit"
-              className="text-sm text-stone-500 underline hover:text-stone-900 dark:hover:text-stone-50"
-            >
-              Cerrar sesión
-            </button>
-          </form>
-        )}
-      </nav>
+        </nav>
+      </div>
     </header>
   );
 }
