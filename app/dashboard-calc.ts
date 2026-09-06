@@ -16,6 +16,14 @@ export type UnidadAgg = {
   edificio_id: string;
   estado: string;
   renta_vigente: number;
+  codigo?: string;
+};
+
+export type InquilinoAgg = {
+  unidad_id: string;
+  nombre_arrendatario: string;
+  fecha_inicio_contrato: string | null;
+  contrato_activo: boolean;
 };
 
 export type ObligacionAgg = {
@@ -58,6 +66,26 @@ function claveMes(fecha: string) {
   return fecha.slice(0, 7);
 }
 
+// Meses completos transcurridos entre dos fechas (sin contar el mes en curso
+// si todavía no se llega al día del aniversario).
+function mesesTranscurridos(inicio: Date, hoy: Date): number {
+  let meses = (hoy.getFullYear() - inicio.getFullYear()) * 12 + (hoy.getMonth() - inicio.getMonth());
+  if (hoy.getDate() < inicio.getDate()) meses -= 1;
+  return Math.max(0, meses);
+}
+
+/**
+ * En qué mes (1 a 12) del ciclo anual de contrato está una fecha de inicio
+ * dada. El ciclo se reinicia cada año en el aniversario de fecha_inicio.
+ * Mes 12 = último mes antes de cumplir el año (hay que renovar y ajustar
+ * el canon por inflación).
+ */
+export function calcularMesContrato(fechaInicioContrato: string, hoy: Date): number {
+  const inicio = new Date(fechaInicioContrato + "T00:00:00");
+  const meses = mesesTranscurridos(inicio, hoy);
+  return (meses % 12) + 1;
+}
+
 export function calcularMetricas({
   edificioId,
   nombre,
@@ -66,6 +94,7 @@ export function calcularMetricas({
   unidades,
   obligaciones,
   categorias,
+  inquilinos = [],
   nombreEdificioPorId,
 }: {
   edificioId: string | null; // null = consolidado (todas las propiedades)
@@ -75,11 +104,16 @@ export function calcularMetricas({
   unidades: UnidadAgg[];
   obligaciones: ObligacionAgg[];
   categorias: CategoriaAgg[];
+  inquilinos?: InquilinoAgg[];
   nombreEdificioPorId: Map<string, string>;
 }): MetricasPropiedad {
+  const unidadPorId = new Map(unidades.map((u) => [u.id, u]));
   const movs = edificioId ? movimientos.filter((m) => m.edificio_id === edificioId) : movimientos;
   const unids = edificioId ? unidades.filter((u) => u.edificio_id === edificioId) : unidades;
   const obls = edificioId ? obligaciones.filter((o) => o.edificio_id === edificioId) : obligaciones;
+  const inqs = edificioId
+    ? inquilinos.filter((i) => unidadPorId.get(i.unidad_id)?.edificio_id === edificioId)
+    : inquilinos;
 
   const totalUnidades = unids.length;
   const unidadesOcupadas = unids.filter((u) => u.estado === "Ocupado").length;
@@ -195,6 +229,20 @@ export function calcularMetricas({
       alertas.push({
         severidad: "warning",
         mensaje: `${prefijo}${unidadesSinRenta.length} unidad(es) ocupada(s) sin un ingreso de "Renta" registrado este mes`,
+      });
+    }
+  }
+
+  for (const i of inqs) {
+    if (!i.contrato_activo || !i.fecha_inicio_contrato) continue;
+    const mes = calcularMesContrato(i.fecha_inicio_contrato, hoy);
+    if (mes === 12) {
+      const unidad = unidadPorId.get(i.unidad_id);
+      const prefijo = edificioId ? "" : `${nombreEdificioPorId.get(unidad?.edificio_id ?? "") ?? "?"} · `;
+      const codigo = unidad?.codigo ? ` (unidad ${unidad.codigo})` : "";
+      alertas.push({
+        severidad: "warning",
+        mensaje: `${prefijo}Contrato de ${i.nombre_arrendatario}${codigo} cumple un año este mes — renovar y ajustar el canon por inflación`,
       });
     }
   }

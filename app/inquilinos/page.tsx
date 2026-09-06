@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { InquilinoForm } from "./InquilinoForm";
 import { crearInquilino } from "./actions";
+import { calcularMesContrato } from "../dashboard-calc";
 
 export const dynamic = "force-dynamic";
 
@@ -148,6 +149,18 @@ export default async function InquilinosPage() {
                             <span className="block text-xs text-zinc-400">
                               Desde {i.fecha_inicio_contrato}
                             </span>
+                          )}
+                          {i.contrato_activo && i.fecha_inicio_contrato && (
+                            (() => {
+                              const mes = calcularMesContrato(i.fecha_inicio_contrato, new Date());
+                              return mes === 12 ? (
+                                <span className="mt-1 block max-w-[16rem] rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-300">
+                                  Mes {mes}/12 — renovar y ajustar canon por inflación
+                                </span>
+                              ) : (
+                                <span className="block text-xs text-zinc-400">Mes {mes}/12 del ciclo</span>
+                              );
+                            })()
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">

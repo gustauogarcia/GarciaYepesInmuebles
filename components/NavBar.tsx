@@ -8,9 +8,13 @@ const links = [
   { href: "/unidades", label: "Unidades" },
   { href: "/inquilinos", label: "Inquilinos" },
   { href: "/movimientos", label: "Movimientos" },
+  { href: "/dotacion", label: "Dotación" },
   { href: "/proveedores", label: "Proveedores" },
   { href: "/cotizaciones", label: "Cotizaciones" },
-  { href: "/obligaciones", label: "Impuestos" },
+  { href: "/exportar", label: "Exportar" },
+  // "Impuestos" (obligaciones_regulatorias) se quita del menú a pedido: por
+  // ahora esa información se registra en Movimientos con la categoría
+  // "Impuestos". La pantalla sigue en /obligaciones por si se retoma después.
 ];
 
 export async function NavBar() {

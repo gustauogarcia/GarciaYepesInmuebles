@@ -5,7 +5,19 @@ import { DashboardView } from "./DashboardView";
 export const dynamic = "force-dynamic"; // siempre consulta datos frescos, no cachea
 
 type EdificioRow = { id: string; nombre: string };
-type UnidadRow = { id: string; edificio_id: string; estado: string; renta_vigente: number };
+type UnidadRow = {
+  id: string;
+  edificio_id: string;
+  estado: string;
+  renta_vigente: number;
+  codigo: string;
+};
+type InquilinoRow = {
+  unidad_id: string;
+  nombre_arrendatario: string;
+  fecha_inicio_contrato: string | null;
+  contrato_activo: boolean;
+};
 type MovimientoRow = {
   edificio_id: string;
   unidad_id: string | null;
@@ -34,17 +46,29 @@ async function getDatos() {
     { data: movimientos, error: errorMovimientos },
     { data: obligaciones, error: errorObligaciones },
     { data: categorias, error: errorCategorias },
+    { data: inquilinos, error: errorInquilinos },
   ] = await Promise.all([
     supabase.from("edificios").select("id, nombre").order("nombre"),
-    supabase.from("unidades").select("id, edificio_id, estado, renta_vigente"),
+    supabase.from("unidades").select("id, edificio_id, estado, renta_vigente, codigo"),
     supabase.from("movimientos").select("edificio_id, unidad_id, fecha, tipo, categoria_id, monto"),
     supabase
       .from("obligaciones_regulatorias")
       .select("edificio_id, tipo, entidad_reguladora, fecha_vencimiento, estado, monto"),
     supabase.from("categorias_movimiento").select("id, nombre, tipo"),
+    supabase
+      .from("inquilinos")
+      .select("unidad_id, nombre_arrendatario, fecha_inicio_contrato, contrato_activo")
+      .eq("contrato_activo", true),
   ]);
 
-  if (errorEdificios || errorUnidades || errorMovimientos || errorObligaciones || errorCategorias) {
+  if (
+    errorEdificios ||
+    errorUnidades ||
+    errorMovimientos ||
+    errorObligaciones ||
+    errorCategorias ||
+    errorInquilinos
+  ) {
     return null;
   }
 
@@ -57,6 +81,7 @@ async function getDatos() {
     unidades: (unidades as UnidadRow[]) ?? [],
     obligaciones: (obligaciones as ObligacionRow[]) ?? [],
     categorias: (categorias as CategoriaRow[]) ?? [],
+    inquilinos: (inquilinos as InquilinoRow[]) ?? [],
     nombreEdificioPorId,
   };
 

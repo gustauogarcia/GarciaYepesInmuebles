@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { UnidadForm } from "./UnidadForm";
 import { crearUnidad } from "./actions";
+import { calcularMesContrato } from "../dashboard-calc";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ type Unidad = {
 type Inquilino = {
   unidad_id: string;
   nombre_arrendatario: string;
+  fecha_inicio_contrato: string | null;
 };
 
 async function getDatos() {
@@ -36,20 +38,32 @@ async function getDatos() {
       .from("unidades")
       .select("id, edificio_id, codigo, torre, habitaciones, estado, renta_vigente")
       .order("codigo"),
-    supabase.from("inquilinos").select("unidad_id, nombre_arrendatario").eq("contrato_activo", true),
+    supabase
+      .from("inquilinos")
+      .select("unidad_id, nombre_arrendatario, fecha_inicio_contrato")
+      .eq("contrato_activo", true),
   ]);
 
   if (errorEdificios || errorUnidades) return null;
 
-  const inquilinoPorUnidad = new Map<string, string>(
-    (inquilinos as Inquilino[] | null)?.map((i) => [i.unidad_id, i.nombre_arrendatario]) ?? []
+  const inquilinoPorUnidad = new Map<string, Inquilino>(
+    (inquilinos as Inquilino[] | null)?.map((i) => [i.unidad_id, i]) ?? []
   );
   const nombreEdificio = new Map(((edificios as EdificioRow[]) ?? []).map((e) => [e.id, e.nombre]));
 
-  const conInquilino = ((unidades as Unidad[]) ?? []).map((u) => ({
-    ...u,
-    inquilino: inquilinoPorUnidad.get(u.id) ?? null,
-  }));
+  const hoy = new Date();
+  const conInquilino = ((unidades as Unidad[]) ?? []).map((u) => {
+    const inquilino = inquilinoPorUnidad.get(u.id);
+    const mesContrato =
+      inquilino?.fecha_inicio_contrato != null
+        ? calcularMesContrato(inquilino.fecha_inicio_contrato, hoy)
+        : null;
+    return {
+      ...u,
+      inquilino: inquilino?.nombre_arrendatario ?? null,
+      mesContrato,
+    };
+  });
 
   return {
     edificios: (edificios as EdificioRow[]) ?? [],
@@ -147,6 +161,15 @@ export default async function UnidadesPage() {
                   </td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                     {u.inquilino ?? "—"}
+                    {u.mesContrato != null && (
+                      u.mesContrato === 12 ? (
+                        <span className="mt-1 block max-w-[14rem] rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-300">
+                          Mes 12/12 — renovar y ajustar canon
+                        </span>
+                      ) : (
+                        <span className="block text-xs text-zinc-400">Mes {u.mesContrato}/12 del ciclo</span>
+                      )
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-zinc-50">
                     {formatoCOP.format(u.renta_vigente)}
