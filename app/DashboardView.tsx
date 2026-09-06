@@ -204,7 +204,26 @@ export function DashboardView({
           value={m.margenYTDPct !== null ? `${m.margenYTDPct}%` : "—"}
           sub="Utilidad como % de los ingresos del año"
         />
+        <StatTile
+          label="Administración / Jaime Yepes"
+          value={formatoCOP.format(m.pagosAdminJaimeTotal)}
+          sub={`Histórico · este año ${formatoCOP.format(m.pagosAdminJaimeYTD)}`}
+        />
+        <StatTile
+          label="Pagos a los dueños (socios)"
+          value={formatoCOP.format(m.pagosDuenosTotal)}
+          sub={`Histórico · este año ${formatoCOP.format(m.pagosDuenosYTD)}`}
+        />
       </div>
+      <p className="mt-2 text-xs text-stone-400">
+        &quot;Pagos a los dueños&quot; suma los egresos cuyo concepto en Movimientos menciona a Piedad o a
+        Gustauo (con o sin apellido) o a socios. &quot;Administración / Jaime Yepes&quot; suma los egresos
+        cuyo concepto menciona administración, admon o Jaime Yepes — salvo que estén registrados en
+        la categoría &quot;Retiros / Socios&quot; (p. ej. un bono a Jaime autorizado por los socios), en
+        cuyo caso también cuentan como pago a los dueños. Un gasto de remodelación u otro gasto
+        general que no nombre a ninguno de ellos no se cuenta en ninguna de las dos tarjetas, aunque
+        esté contabilizado bajo Retiros/Socios.
+      </p>
 
       <div className="mt-8 rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
         <h2 className="text-sm font-medium text-stone-900 dark:text-stone-50">

@@ -24,6 +24,7 @@ type MovimientoRow = {
   fecha: string;
   tipo: string;
   categoria_id: string | null;
+  concepto: string | null;
   monto: number;
 };
 type ObligacionRow = {
@@ -50,7 +51,9 @@ async function getDatos() {
   ] = await Promise.all([
     supabase.from("edificios").select("id, nombre").order("nombre"),
     supabase.from("unidades").select("id, edificio_id, estado, renta_vigente, codigo"),
-    supabase.from("movimientos").select("edificio_id, unidad_id, fecha, tipo, categoria_id, monto"),
+    supabase
+      .from("movimientos")
+      .select("edificio_id, unidad_id, fecha, tipo, categoria_id, concepto, monto"),
     supabase
       .from("obligaciones_regulatorias")
       .select("edificio_id, tipo, entidad_reguladora, fecha_vencimiento, estado, monto"),

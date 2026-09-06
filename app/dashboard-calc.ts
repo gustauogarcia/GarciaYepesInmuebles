@@ -8,6 +8,7 @@ export type MovimientoAgg = {
   fecha: string; // YYYY-MM-DD
   tipo: string; // "Ingreso" | "Egreso"
   categoria_id: string | null;
+  concepto: string | null;
   monto: number;
 };
 
@@ -56,6 +57,10 @@ export type MetricasPropiedad = {
   ingresosYTD: number;
   egresosYTD: number;
   margenYTDPct: number | null;
+  pagosAdminJaimeTotal: number;
+  pagosAdminJaimeYTD: number;
+  pagosDuenosTotal: number;
+  pagosDuenosYTD: number;
   serieMensual: SerieMes[];
   gastosPorCategoria: CategoriaMonto[];
   alertas: Alerta[];
@@ -68,6 +73,27 @@ const MESES_ABR = [
 function claveMes(fecha: string) {
   return fecha.slice(0, 7);
 }
+
+function normalizarTexto(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+// Búsqueda por texto libre en el concepto del movimiento — no por categoría,
+// porque un gasto de remodelación (materiales, mano de obra) puede quedar
+// contabilizado en "Retiros / Socios" sin que eso sea plata que se le pagó
+// a los dueños; solo cuenta como pago a los dueños si el concepto de verdad
+// nombra a Piedad, a Gustauo (con o sin apellido) o a "socios".
+function esPagoADuenos(texto: string): boolean {
+  return (
+    /\bpiedad\b/.test(texto) ||
+    /\bgusta[uv]o\b/.test(texto) ||
+    /\bsocios?\b/.test(texto)
+  );
+}
+const RE_ADMIN_JAIME = /administraci[o0]n|\badmon\b|jaime\s+yepes/;
 
 // Meses completos transcurridos entre dos fechas (sin contar el mes en curso
 // si todavía no se llega al día del aniversario).
@@ -129,6 +155,7 @@ export function calcularMetricas({
   const mesAnteriorDate = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
   const mesAnteriorClave = `${mesAnteriorDate.getFullYear()}-${String(mesAnteriorDate.getMonth() + 1).padStart(2, "0")}`;
   const categoriaRentaId = categorias.find((c) => c.nombre === "Renta")?.id;
+  const categoriaRetirosSociosId = categorias.find((c) => c.nombre === "Retiros / Socios")?.id;
 
   let ingresosMes = 0;
   let egresosMes = 0;
@@ -136,6 +163,10 @@ export function calcularMetricas({
   let egresosYTD = 0;
   let rentaRecaudadaMes = 0;
   let saldoActual = 0;
+  let pagosAdminJaimeTotal = 0;
+  let pagosAdminJaimeYTD = 0;
+  let pagosDuenosTotal = 0;
+  let pagosDuenosYTD = 0;
 
   const porMes = new Map<string, { ingreso: number; egreso: number }>();
   const porCategoriaEgreso = new Map<string, number>();
@@ -153,6 +184,28 @@ export function calcularMetricas({
     if (esIngreso) bucket.ingreso += monto;
     else bucket.egreso += monto;
     porMes.set(clave, bucket);
+
+    if (!esIngreso) {
+      const texto = m.concepto ? normalizarTexto(m.concepto) : "";
+      if (esPagoADuenos(texto)) {
+        pagosDuenosTotal += monto;
+        if (anio === anioActual) pagosDuenosYTD += monto;
+      } else if (RE_ADMIN_JAIME.test(texto)) {
+        // Un pago a Jaime Yepes contabilizado en "Retiros / Socios" (p. ej. un
+        // bono autorizado por los socios) cuenta como pago a los dueños, no
+        // como gasto de administración — la categoría decide solo en este
+        // caso puntual, nunca para gastos que no mencionan a Jaime ni a los
+        // dueños (esos, aunque estén en Retiros/Socios, no se cuentan aquí).
+        const esRetirosSocios = Boolean(categoriaRetirosSociosId) && m.categoria_id === categoriaRetirosSociosId;
+        if (esRetirosSocios) {
+          pagosDuenosTotal += monto;
+          if (anio === anioActual) pagosDuenosYTD += monto;
+        } else {
+          pagosAdminJaimeTotal += monto;
+          if (anio === anioActual) pagosAdminJaimeYTD += monto;
+        }
+      }
+    }
 
     if (clave === mesActualClave) {
       if (esIngreso) {
@@ -275,6 +328,10 @@ export function calcularMetricas({
     ingresosYTD,
     egresosYTD,
     margenYTDPct,
+    pagosAdminJaimeTotal,
+    pagosAdminJaimeYTD,
+    pagosDuenosTotal,
+    pagosDuenosYTD,
     serieMensual,
     gastosPorCategoria,
     alertas,
