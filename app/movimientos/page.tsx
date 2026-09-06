@@ -79,21 +79,21 @@ export default async function MovimientosPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Movimientos
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
         El libro de caja: cada ingreso y egreso, con el saldo acumulado.
       </p>
 
       {!datos && (
-        <div className="mt-8 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+        <div className="mt-8 rounded-xl border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
           No se pudo leer la información de movimientos desde Supabase.
         </div>
       )}
 
       {datos && datos.edificios.length === 0 && (
-        <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Primero necesitas al menos un edificio registrado en Supabase para poder agregar
           movimientos.
         </div>
@@ -111,21 +111,21 @@ export default async function MovimientosPage() {
 
       {datos && (
         <>
-          <h2 className="mt-10 text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          <h2 className="mt-10 text-lg font-medium text-stone-900 dark:text-stone-50">
             {datos.totalMovimientos === 0
               ? "Todavía no hay movimientos registrados."
               : `${datos.totalMovimientos} movimiento(s) en total`}
           </h2>
           {datos.movimientos.length > 0 && datos.totalMovimientos > datos.movimientos.length && (
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
               Mostrando los {datos.movimientos.length} más recientes.
             </p>
           )}
 
           {datos.movimientos.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-100 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+                <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
                   <tr>
                     <th className="px-4 py-3 font-medium">Fecha</th>
                     <th className="px-4 py-3 font-medium">Concepto</th>
@@ -134,7 +134,7 @@ export default async function MovimientosPage() {
                     <th className="px-4 py-3 font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                   {datos.movimientos.map((m) => (
                     <FilaMovimiento
                       key={m.id}

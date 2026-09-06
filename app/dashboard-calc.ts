@@ -38,7 +38,7 @@ export type ObligacionAgg = {
 export type CategoriaAgg = { id: string; nombre: string; tipo: string };
 
 export type SerieMes = { mes: string; ingreso: number; egreso: number };
-export type CategoriaMonto = { nombre: string; monto: number };
+export type CategoriaMonto = { nombre: string; monto: number; pct: number };
 export type Alerta = { severidad: "critical" | "warning"; mensaje: string };
 
 export type MetricasPropiedad = {
@@ -50,9 +50,12 @@ export type MetricasPropiedad = {
   rentaRecaudadaMes: number;
   ingresosMes: number;
   egresosMes: number;
+  ingresosMesAnterior: number;
+  egresosMesAnterior: number;
   saldoActual: number;
   ingresosYTD: number;
   egresosYTD: number;
+  margenYTDPct: number | null;
   serieMensual: SerieMes[];
   gastosPorCategoria: CategoriaMonto[];
   alertas: Alerta[];
@@ -123,6 +126,8 @@ export function calcularMetricas({
 
   const anioActual = hoy.getFullYear();
   const mesActualClave = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+  const mesAnteriorDate = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+  const mesAnteriorClave = `${mesAnteriorDate.getFullYear()}-${String(mesAnteriorDate.getMonth() + 1).padStart(2, "0")}`;
   const categoriaRentaId = categorias.find((c) => c.nombre === "Renta")?.id;
 
   let ingresosMes = 0;
@@ -185,12 +190,17 @@ export function calcularMetricas({
     });
   }
 
-  // Top 5 categorías de gasto (año en curso) + "Otros".
+  // Top 5 categorías de gasto (año en curso) + "Otros", con su % del total.
   const categoriasOrdenadas = Array.from(porCategoriaEgreso.entries()).sort((a, b) => b[1] - a[1]);
   const top = categoriasOrdenadas.slice(0, 5);
   const resto = categoriasOrdenadas.slice(5).reduce((s, [, v]) => s + v, 0);
-  const gastosPorCategoria: CategoriaMonto[] = top.map(([n, monto]) => ({ nombre: n, monto }));
-  if (resto > 0) gastosPorCategoria.push({ nombre: "Otros", monto: resto });
+  const pctDe = (monto: number) => (egresosYTD > 0 ? Math.round((monto / egresosYTD) * 1000) / 10 : 0);
+  const gastosPorCategoria: CategoriaMonto[] = top.map(([n, monto]) => ({ nombre: n, monto, pct: pctDe(monto) }));
+  if (resto > 0) gastosPorCategoria.push({ nombre: "Otros", monto: resto, pct: pctDe(resto) });
+
+  const ingresosMesAnterior = porMes.get(mesAnteriorClave)?.ingreso ?? 0;
+  const egresosMesAnterior = porMes.get(mesAnteriorClave)?.egreso ?? 0;
+  const margenYTDPct = ingresosYTD > 0 ? Math.round(((ingresosYTD - egresosYTD) / ingresosYTD) * 1000) / 10 : null;
 
   // Alertas: obligaciones vencidas / próximas a vencer, y renta sin registrar.
   const alertas: Alerta[] = [];
@@ -259,9 +269,12 @@ export function calcularMetricas({
     rentaRecaudadaMes,
     ingresosMes,
     egresosMes,
+    ingresosMesAnterior,
+    egresosMesAnterior,
     saldoActual,
     ingresosYTD,
     egresosYTD,
+    margenYTDPct,
     serieMensual,
     gastosPorCategoria,
     alertas,

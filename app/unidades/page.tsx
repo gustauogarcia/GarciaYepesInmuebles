@@ -83,21 +83,21 @@ export default async function UnidadesPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Unidades
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
         {datos ? `${datos.unidades.length} unidades registradas.` : ""}
       </p>
 
       {!datos && (
-        <div className="mt-8 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+        <div className="mt-8 rounded-xl border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
           No se pudo leer la lista de unidades desde Supabase.
         </div>
       )}
 
       {datos && datos.edificios.length === 0 && (
-        <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Primero registra una{" "}
           <Link href="/edificios" className="underline">
             propiedad
@@ -109,7 +109,7 @@ export default async function UnidadesPage() {
       {datos && datos.edificios.length > 0 && (
         <div className="mt-8">
           <UnidadForm edificios={datos.edificios} accion={crearUnidad} />
-          <p className="mt-2 text-xs text-zinc-400">
+          <p className="mt-2 text-xs text-stone-400">
             El estado (Ocupado/Vacante) se actualiza solo cuando registras o terminas un contrato
             en{" "}
             <Link href="/inquilinos" className="underline">
@@ -121,9 +121,9 @@ export default async function UnidadesPage() {
       )}
 
       {datos && datos.unidades.length > 0 && (
-        <div className="mt-8 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <div className="mt-8 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
           <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-100 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+            <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
               <tr>
                 <th className="px-4 py-3 font-medium">Unidad</th>
                 {datos.edificios.length > 1 && (
@@ -135,15 +135,15 @@ export default async function UnidadesPage() {
                 <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
               {datos.unidades.map((u) => (
-                <tr key={u.id} className="bg-white dark:bg-black">
-                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-50">
+                <tr key={u.id} className="bg-white transition-colors hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900/60">
+                  <td className="px-4 py-3 font-medium text-stone-900 dark:text-stone-50">
                     {u.codigo}
-                    {u.torre && <span className="block text-xs text-zinc-400">{u.torre}</span>}
+                    {u.torre && <span className="block text-xs text-stone-400">{u.torre}</span>}
                   </td>
                   {datos.edificios.length > 1 && (
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
                       {datos.nombreEdificio.get(u.edificio_id) ?? "—"}
                     </td>
                   )}
@@ -153,13 +153,13 @@ export default async function UnidadesPage() {
                         "rounded-full px-2 py-0.5 text-xs font-medium " +
                         (u.estado === "Ocupado"
                           ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                          : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400")
+                          : "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400")
                       }
                     >
                       {u.estado}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                  <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
                     {u.inquilino ?? "—"}
                     {u.mesContrato != null && (
                       u.mesContrato === 12 ? (
@@ -167,17 +167,17 @@ export default async function UnidadesPage() {
                           Mes 12/12 — renovar y ajustar canon
                         </span>
                       ) : (
-                        <span className="block text-xs text-zinc-400">Mes {u.mesContrato}/12 del ciclo</span>
+                        <span className="block text-xs text-stone-400">Mes {u.mesContrato}/12 del ciclo</span>
                       )
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-zinc-50">
+                  <td className="px-4 py-3 text-right tabular-nums text-stone-900 dark:text-stone-50">
                     {formatoCOP.format(u.renta_vigente)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/unidades/${u.id}`}
-                      className="text-xs font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                      className="text-xs font-medium text-stone-600 underline hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-50"
                     >
                       Editar
                     </Link>

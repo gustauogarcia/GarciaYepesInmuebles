@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
   Legend,
   ResponsiveContainer,
   Tooltip,
@@ -69,14 +70,30 @@ function TooltipMoneda({
   );
 }
 
-function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function variacionPct(actual: number, anterior: number): number | null {
+  if (anterior === 0) return actual === 0 ? 0 : null;
+  return Math.round(((actual - anterior) / anterior) * 1000) / 10;
+}
+
+function VariacionTexto({ pct }: { pct: number | null }) {
+  if (pct === null) return null;
+  const subiendo = pct > 0;
+  const plano = pct === 0;
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-black">
-      <div className="text-xs uppercase tracking-wide text-zinc-500">{label}</div>
-      <div className="mt-1 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
+    <span style={{ color: "var(--text-muted)" }}>
+      {plano ? "Igual que" : subiendo ? "▲" : "▼"} {plano ? "" : `${Math.abs(pct)}% `}vs. mes anterior
+    </span>
+  );
+}
+
+function StatTile({ label, value, sub }: { label: string; value: string; sub?: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
+      <div className="text-xs uppercase tracking-wide text-stone-500">{label}</div>
+      <div className="mt-1 text-xl font-semibold tabular-nums text-stone-900 dark:text-stone-50">
         {value}
       </div>
-      {sub && <div className="mt-0.5 text-xs text-zinc-400">{sub}</div>}
+      {sub && <div className="mt-0.5 text-xs text-stone-400">{sub}</div>}
     </div>
   );
 }
@@ -85,8 +102,8 @@ function chipClase(activo: boolean) {
   return (
     "rounded-full px-3 py-1.5 text-sm font-medium transition " +
     (activo
-      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800")
+      ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900"
+      : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800")
   );
 }
 
@@ -157,8 +174,16 @@ export function DashboardView({
           value={`${ocupacionPct}%`}
           sub={`${m.unidadesOcupadas} de ${m.totalUnidades} unidades`}
         />
-        <StatTile label="Ingresos del mes" value={formatoCOP.format(m.ingresosMes)} />
-        <StatTile label="Egresos del mes" value={formatoCOP.format(m.egresosMes)} />
+        <StatTile
+          label="Ingresos del mes"
+          value={formatoCOP.format(m.ingresosMes)}
+          sub={<VariacionTexto pct={variacionPct(m.ingresosMes, m.ingresosMesAnterior)} />}
+        />
+        <StatTile
+          label="Egresos del mes"
+          value={formatoCOP.format(m.egresosMes)}
+          sub={<VariacionTexto pct={variacionPct(m.egresosMes, m.egresosMesAnterior)} />}
+        />
         <StatTile label="Saldo de caja" value={formatoCOP.format(m.saldoActual)} />
         <StatTile
           label="Recaudo de renta (mes)"
@@ -174,10 +199,15 @@ export function DashboardView({
           value={formatoCOP.format(utilidadYTD)}
           sub={`Ingresos ${formatoCOP.format(m.ingresosYTD)} · Egresos ${formatoCOP.format(m.egresosYTD)}`}
         />
+        <StatTile
+          label="Margen YTD"
+          value={m.margenYTDPct !== null ? `${m.margenYTDPct}%` : "—"}
+          sub="Utilidad como % de los ingresos del año"
+        />
       </div>
 
-      <div className="mt-8 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-black">
-        <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+      <div className="mt-8 rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
+        <h2 className="text-sm font-medium text-stone-900 dark:text-stone-50">
           Ingresos y egresos — últimos 12 meses
         </h2>
         <div className="mt-2">
@@ -207,21 +237,21 @@ export function DashboardView({
           </ResponsiveContainer>
         </div>
         <details className="mt-3">
-          <summary className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
+          <summary className="cursor-pointer text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300">
             Ver como tabla
           </summary>
           <div className="mt-2 overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="text-zinc-500">
+              <thead className="text-stone-500">
                 <tr>
                   <th className="py-1 pr-4">Mes</th>
                   <th className="py-1 pr-4 text-right">Ingresos</th>
                   <th className="py-1 text-right">Egresos</th>
                 </tr>
               </thead>
-              <tbody className="text-zinc-700 dark:text-zinc-300">
+              <tbody className="text-stone-700 dark:text-stone-300">
                 {m.serieMensual.map((f) => (
-                  <tr key={f.mes} className="border-t border-zinc-100 dark:border-zinc-900">
+                  <tr key={f.mes} className="border-t border-stone-100 dark:border-stone-900">
                     <td className="py-1 pr-4">{f.mes}</td>
                     <td className="py-1 pr-4 text-right tabular-nums">{formatoCOP.format(f.ingreso)}</td>
                     <td className="py-1 text-right tabular-nums">{formatoCOP.format(f.egreso)}</td>
@@ -234,13 +264,13 @@ export function DashboardView({
       </div>
 
       {m.gastosPorCategoria.length > 0 && (
-        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-black">
-          <h2 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+        <div className="mt-6 rounded-xl border border-stone-200 bg-white shadow-sm p-4 dark:border-stone-800 dark:bg-stone-950">
+          <h2 className="text-sm font-medium text-stone-900 dark:text-stone-50">
             Egresos por categoría — año en curso
           </h2>
           <div className="mt-2">
             <ResponsiveContainer width="100%" height={alturaGastos}>
-              <BarChart data={m.gastosPorCategoria} layout="vertical" margin={{ left: 8, right: 16 }}>
+              <BarChart data={m.gastosPorCategoria} layout="vertical" margin={{ left: 8, right: 32 }}>
                 <CartesianGrid stroke="var(--grid-line)" horizontal={false} />
                 <XAxis
                   type="number"
@@ -260,7 +290,11 @@ export function DashboardView({
                   tickLine={false}
                 />
                 <Tooltip
-                  formatter={(value) => formatoCOP.format(Number(value) || 0)}
+                  formatter={(value, name, props) => {
+                    const pct = (props?.payload as { pct?: number })?.pct;
+                    const monto = formatoCOP.format(Number(value) || 0);
+                    return [pct != null ? `${monto} (${pct}% del total)` : monto, "Egresos"];
+                  }}
                   contentStyle={{
                     background: "var(--surface-1)",
                     border: "1px solid var(--grid-line)",
@@ -269,10 +303,42 @@ export function DashboardView({
                   }}
                   cursor={{ fill: "var(--grid-line)", opacity: 0.5 }}
                 />
-                <Bar dataKey="monto" name="Egresos" fill="var(--series-2)" radius={[0, 3, 3, 0]} />
+                <Bar dataKey="monto" name="Egresos" fill="var(--series-2)" radius={[0, 3, 3, 0]}>
+                  <LabelList
+                    dataKey="pct"
+                    position="right"
+                    formatter={(v) => `${Number(v) || 0}%`}
+                    style={{ fill: "var(--text-secondary)", fontSize: 11 }}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
+          <details className="mt-3">
+            <summary className="cursor-pointer text-xs text-stone-500 hover:text-stone-700 dark:hover:text-stone-300">
+              Ver como tabla
+            </summary>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="text-stone-500">
+                  <tr>
+                    <th className="py-1 pr-4">Categoría</th>
+                    <th className="py-1 pr-4 text-right">Monto</th>
+                    <th className="py-1 text-right">% del total</th>
+                  </tr>
+                </thead>
+                <tbody className="text-stone-700 dark:text-stone-300">
+                  {m.gastosPorCategoria.map((c) => (
+                    <tr key={c.nombre} className="border-t border-stone-100 dark:border-stone-900">
+                      <td className="py-1 pr-4">{c.nombre}</td>
+                      <td className="py-1 pr-4 text-right tabular-nums">{formatoCOP.format(c.monto)}</td>
+                      <td className="py-1 text-right tabular-nums">{c.pct}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </div>
       )}
     </div>

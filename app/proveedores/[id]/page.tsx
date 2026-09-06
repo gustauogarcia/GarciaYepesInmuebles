@@ -21,7 +21,7 @@ export default async function EditarProveedorPage({
   if (!supabaseConfigured || !supabase) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           La base de datos no está conectada.
         </div>
       </main>
@@ -52,10 +52,10 @@ export default async function EditarProveedorPage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/proveedores" className="text-sm text-zinc-500 underline hover:text-zinc-900 dark:hover:text-zinc-50">
+      <Link href="/proveedores" className="text-sm text-stone-500 underline hover:text-stone-900 dark:hover:text-stone-50">
         ← Volver a proveedores
       </Link>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Editar proveedor
       </h1>
 

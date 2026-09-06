@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Neutros cálidos (paleta "stone" de Tailwind) en vez de blanco/negro puros,
+     para un look más sobrio. El body real usa las clases bg-stone-50/950 en
+     layout.tsx; estas variables quedan alineadas por si algo las referencia. */
+  --background: #fafaf9;
+  --foreground: #1c1917;
 }
 
 @theme inline {
@@ -15,8 +18,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0c0a09;
+    --foreground: #f5f5f4;
   }
 }
 

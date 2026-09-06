@@ -17,7 +17,7 @@ export default async function EditarEdificioPage({
   if (!supabaseConfigured || !supabase) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           La base de datos no está conectada.
         </div>
       </main>
@@ -34,11 +34,11 @@ export default async function EditarEdificioPage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <Link
         href="/edificios"
-        className="text-sm text-zinc-500 underline hover:text-zinc-900 dark:hover:text-zinc-50"
+        className="text-sm text-stone-500 underline hover:text-stone-900 dark:hover:text-stone-50"
       >
         ← Volver a propiedades
       </Link>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Editar propiedad
       </h1>
 
@@ -50,7 +50,7 @@ export default async function EditarEdificioPage({
         />
       </div>
 
-      <p className="mt-6 text-xs text-zinc-400">
+      <p className="mt-6 text-xs text-stone-400">
         Por seguridad, esta propiedad no se puede borrar desde la app (borraría en cascada sus
         unidades, inquilinos y movimientos). Si de verdad necesitas eliminarla, dímelo y lo hacemos
         con cuidado directamente en Supabase.

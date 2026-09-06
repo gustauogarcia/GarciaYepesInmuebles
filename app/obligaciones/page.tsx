@@ -73,7 +73,7 @@ function chipEstado(estado: string) {
   if (estado === "Vencido")
     return `${base} bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300`;
   if (estado === "Exento")
-    return `${base} bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400`;
+    return `${base} bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400`;
   return `${base} bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300`;
 }
 
@@ -82,22 +82,22 @@ export default async function ObligacionesPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Impuestos y obligaciones
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
         Catastro, predial, valorización y demás trámites frente a reguladores: vencimientos y
         estado de pago por edificio.
       </p>
 
       {!datos && (
-        <div className="mt-8 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+        <div className="mt-8 rounded-xl border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
           No se pudo leer la información de obligaciones desde Supabase.
         </div>
       )}
 
       {datos && datos.edificios.length === 0 && (
-        <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Primero necesitas al menos un edificio registrado en Supabase.
         </div>
       )}
@@ -115,16 +115,16 @@ export default async function ObligacionesPage() {
 
       {datos && (
         <>
-          <h2 className="mt-10 text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          <h2 className="mt-10 text-lg font-medium text-stone-900 dark:text-stone-50">
             {datos.obligaciones.length === 0
               ? "Todavía no hay obligaciones registradas."
               : `${datos.obligaciones.length} obligación(es) registrada(s)`}
           </h2>
 
           {datos.obligaciones.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-100 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+                <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
                   <tr>
                     <th className="px-4 py-3 font-medium">Obligación</th>
                     <th className="px-4 py-3 font-medium">Vence</th>
@@ -133,26 +133,26 @@ export default async function ObligacionesPage() {
                     <th className="px-4 py-3 font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                   {datos.obligaciones.map((o) => (
-                    <tr key={o.id} className="bg-white dark:bg-black">
+                    <tr key={o.id} className="bg-white transition-colors hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900/60">
                       <td className="px-4 py-3">
-                        <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                        <span className="font-medium text-stone-900 dark:text-stone-50">
                           {o.tipo}
                         </span>
-                        <span className="block text-xs text-zinc-400">
+                        <span className="block text-xs text-stone-400">
                           {[datos.nombreEdificio.get(o.edificio_id), o.entidad_reguladora]
                             .filter(Boolean)
                             .join(" · ")}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                      <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
                         {o.fecha_vencimiento ?? "—"}
                         {o.periodicidad && (
-                          <span className="block text-xs text-zinc-400">{o.periodicidad}</span>
+                          <span className="block text-xs text-stone-400">{o.periodicidad}</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-zinc-900 dark:text-zinc-50">
+                      <td className="px-4 py-3 text-right tabular-nums text-stone-900 dark:text-stone-50">
                         {o.monto != null ? formatoCOP.format(o.monto) : "—"}
                       </td>
                       <td className="px-4 py-3">
@@ -161,7 +161,7 @@ export default async function ObligacionesPage() {
                       <td className="px-4 py-3 text-right">
                         <Link
                           href={`/obligaciones/${o.id}`}
-                          className="text-xs font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                          className="text-xs font-medium text-stone-600 underline hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-50"
                         >
                           Editar
                         </Link>

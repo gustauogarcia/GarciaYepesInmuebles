@@ -11,11 +11,11 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto flex max-w-sm flex-col justify-center px-6 py-24">
-      <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Iniciar sesión
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-        Administración del edificio Blanco y Negro.
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
+        Administración de propiedades — García-Yepes Inmuebles.
       </p>
 
       <div className="mt-8">

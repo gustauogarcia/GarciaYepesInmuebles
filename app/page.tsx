@@ -103,15 +103,15 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Dashboard
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
         Ocupación, ingresos y egresos, y alertas — por propiedad o consolidado.
       </p>
 
       {!supabaseConfigured && (
-        <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           <p className="font-medium">Falta conectar la base de datos.</p>
           <p className="mt-1 text-sm">
             Configura las variables <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> y{" "}
@@ -122,14 +122,14 @@ export default async function Home() {
       )}
 
       {supabaseConfigured && !datos && (
-        <div className="mt-8 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+        <div className="mt-8 rounded-xl border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
           No se pudo leer la base de datos. Revisa que la URL y la llave de Supabase sean
           correctas.
         </div>
       )}
 
       {datos && datos.propiedades.length === 0 && (
-        <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Todavía no tienes ninguna propiedad registrada. Agrega la primera en Propiedades.
         </div>
       )}

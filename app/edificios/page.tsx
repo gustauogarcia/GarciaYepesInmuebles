@@ -43,10 +43,10 @@ export default async function EdificiosPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Propiedades
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
         Cada inmueble que administras. Agrega uno nuevo aquí y luego crea sus apartamentos en{" "}
         <Link href="/unidades" className="underline">
           Unidades
@@ -55,7 +55,7 @@ export default async function EdificiosPage() {
       </p>
 
       {!datos && (
-        <div className="mt-8 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+        <div className="mt-8 rounded-xl border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
           No se pudo leer la información de propiedades desde Supabase.
         </div>
       )}
@@ -68,13 +68,13 @@ export default async function EdificiosPage() {
 
       {datos && (
         <>
-          <h2 className="mt-10 text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          <h2 className="mt-10 text-lg font-medium text-stone-900 dark:text-stone-50">
             {datos.edificios.length} propiedad(es) registrada(s)
           </h2>
 
-          <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
             <table className="w-full text-left text-sm">
-              <thead className="bg-zinc-100 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+              <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
                 <tr>
                   <th className="px-4 py-3 font-medium">Propiedad</th>
                   <th className="px-4 py-3 font-medium text-right">Unidades</th>
@@ -82,27 +82,27 @@ export default async function EdificiosPage() {
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                 {datos.edificios.map((e) => (
-                  <tr key={e.id} className="bg-white dark:bg-black">
+                  <tr key={e.id} className="bg-white transition-colors hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900/60">
                     <td className="px-4 py-3">
-                      <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                      <span className="font-medium text-stone-900 dark:text-stone-50">
                         {e.nombre}
                       </span>
-                      <span className="block text-xs text-zinc-400">
+                      <span className="block text-xs text-stone-400">
                         {[e.direccion, e.ciudad, e.pais].filter(Boolean).join(", ")}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 text-right tabular-nums text-stone-600 dark:text-stone-400">
                       {datos.unidadesPorEdificio.get(e.id) ?? 0}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 text-right tabular-nums text-stone-600 dark:text-stone-400">
                       {(e.pct_administracion * 100).toFixed(0)}%
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/edificios/${e.id}`}
-                        className="text-xs font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                        className="text-xs font-medium text-stone-600 underline hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-50"
                       >
                         Editar
                       </Link>

@@ -66,21 +66,21 @@ export default async function InquilinosPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <h1 className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
         Inquilinos
       </h1>
-      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
         Contratos de arrendamiento por apartamento, con su codeudor y vigencia.
       </p>
 
       {!datos && (
-        <div className="mt-8 rounded-lg border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
+        <div className="mt-8 rounded-xl border border-red-300 bg-red-50 p-5 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200">
           No se pudo leer la información de inquilinos desde Supabase.
         </div>
       )}
 
       {datos && datos.edificios.length === 0 && (
-        <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
           Primero necesitas al menos un edificio con unidades registradas en Supabase.
         </div>
       )}
@@ -93,45 +93,45 @@ export default async function InquilinosPage() {
 
       {datos && (
         <>
-          <h2 className="mt-10 text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          <h2 className="mt-10 text-lg font-medium text-stone-900 dark:text-stone-50">
             {datos.inquilinos.length === 0
               ? "Todavía no hay inquilinos registrados."
               : `${datos.inquilinos.length} inquilino(s) registrado(s)`}
           </h2>
 
           {datos.inquilinos.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-100 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+                <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
                   <tr>
+                    <th className="px-4 py-3 font-medium">Unidad</th>
                     <th className="px-4 py-3 font-medium">Arrendatario</th>
-                    <th className="px-4 py-3 font-medium">Apto</th>
                     <th className="px-4 py-3 font-medium">Contacto</th>
                     <th className="px-4 py-3 font-medium">Contrato</th>
                     <th className="px-4 py-3 font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                   {datos.inquilinos.map((i) => {
                     const unidad = datos.unidadPorId.get(i.unidad_id);
                     const edificio = unidad ? datos.edificioPorId.get(unidad.edificio_id) : null;
                     return (
-                      <tr key={i.id} className="bg-white dark:bg-black">
-                        <td className="px-4 py-3">
-                          <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                      <tr key={i.id} className="bg-white transition-colors hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900/60">
+                        <td className="px-4 py-3 font-medium text-stone-900 dark:text-stone-50">
+                          {unidad?.codigo ?? "—"}
+                          {edificio && <span className="block text-xs font-normal text-stone-400">{edificio}</span>}
+                        </td>
+                        <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
+                          <span className="font-medium text-stone-900 dark:text-stone-50">
                             {i.nombre_arrendatario}
                           </span>
                           {i.nombre_codeudor && (
-                            <span className="block text-xs text-zinc-400">
+                            <span className="block text-xs text-stone-400">
                               Codeudor: {i.nombre_codeudor}
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                          {unidad?.codigo ?? "—"}
-                          {edificio && <span className="block text-xs text-zinc-400">{edificio}</span>}
-                        </td>
-                        <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                        <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
                           {i.telefono ?? i.email ?? "—"}
                         </td>
                         <td className="px-4 py-3">
@@ -140,13 +140,13 @@ export default async function InquilinosPage() {
                               "rounded-full px-2 py-0.5 text-xs font-medium " +
                               (i.contrato_activo
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400")
+                                : "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400")
                             }
                           >
                             {i.contrato_activo ? "Activo" : "Terminado"}
                           </span>
                           {i.fecha_inicio_contrato && (
-                            <span className="block text-xs text-zinc-400">
+                            <span className="block text-xs text-stone-400">
                               Desde {i.fecha_inicio_contrato}
                             </span>
                           )}
@@ -158,7 +158,7 @@ export default async function InquilinosPage() {
                                   Mes {mes}/12 — renovar y ajustar canon por inflación
                                 </span>
                               ) : (
-                                <span className="block text-xs text-zinc-400">Mes {mes}/12 del ciclo</span>
+                                <span className="block text-xs text-stone-400">Mes {mes}/12 del ciclo</span>
                               );
                             })()
                           )}
@@ -166,7 +166,7 @@ export default async function InquilinosPage() {
                         <td className="px-4 py-3 text-right">
                           <Link
                             href={`/inquilinos/${i.id}`}
-                            className="text-xs font-medium text-zinc-600 underline hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                            className="text-xs font-medium text-stone-600 underline hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-50"
                           >
                             Editar
                           </Link>
