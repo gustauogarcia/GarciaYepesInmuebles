@@ -30,6 +30,11 @@ export function FilaMovimiento({
         <span className="block text-xs text-zinc-400">
           {[edificio, unidad ? `Apto ${unidad}` : null, categoria].filter(Boolean).join(" · ")}
         </span>
+        {movimiento.comprobante && (
+          <span className="block text-xs text-zinc-400">
+            Comprobante: {movimiento.comprobante}
+          </span>
+        )}
       </td>
       <td
         className={

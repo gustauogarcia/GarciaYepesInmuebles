@@ -9,6 +9,7 @@ const links = [
   { href: "/movimientos", label: "Movimientos" },
   { href: "/proveedores", label: "Proveedores" },
   { href: "/cotizaciones", label: "Cotizaciones" },
+  { href: "/obligaciones", label: "Impuestos" },
 ];
 
 export async function NavBar() {
@@ -16,11 +17,11 @@ export async function NavBar() {
 
   return (
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-black">
-      <nav className="mx-auto flex max-w-3xl items-center gap-6 px-6 py-4">
+      <nav className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4">
         <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
           Blanco y Negro
         </span>
-        <div className="flex flex-1 gap-4 text-sm">
+        <div className="flex flex-1 flex-wrap gap-x-4 gap-y-1 text-sm">
           {links.map((link) => (
             <Link
               key={link.href}
