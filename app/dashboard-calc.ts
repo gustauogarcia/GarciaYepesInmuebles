@@ -39,7 +39,6 @@ export type ObligacionAgg = {
 export type CategoriaAgg = { id: string; nombre: string; tipo: string };
 
 export type SerieMes = { mes: string; ingreso: number; egreso: number };
-export type MesProyectado = { mes: string; ingreso: number; egreso: number; saldo: number };
 export type CategoriaMonto = { nombre: string; monto: number; pct: number };
 export type Alerta = { severidad: "critical" | "warning"; mensaje: string };
 
@@ -63,7 +62,6 @@ export type MetricasPropiedad = {
   pagosDuenosTotal: number;
   pagosDuenosYTD: number;
   serieMensual: SerieMes[];
-  flujoProyectado: MesProyectado[];
   gastosPorCategoria: CategoriaMonto[];
   alertas: Alerta[];
 };
@@ -272,34 +270,6 @@ export function calcularMetricas({
     });
   }
 
-  // Flujo de caja proyectado (próximos 3 meses): proyección simple que
-  // asume que la renta potencial actual se sigue cobrando igual (unidades
-  // ocupadas × renta vigente) y que los egresos siguen el promedio de los
-  // últimos 3 meses ya completos (sin contar el mes en curso, que puede
-  // estar incompleto). No contempla renovaciones, ajustes de canon por
-  // inflación, ni gastos extraordinarios — es un punto de partida, no una
-  // predicción exacta.
-  const NUM_MESES_PROYECCION = 3;
-  const mesesPreviosCompletos = serieMensual.slice(-(NUM_MESES_PROYECCION + 1), -1);
-  const egresoPromedio =
-    mesesPreviosCompletos.length > 0
-      ? mesesPreviosCompletos.reduce((s, mes) => s + mes.egreso, 0) / mesesPreviosCompletos.length
-      : 0;
-  const flujoProyectado: MesProyectado[] = [];
-  let saldoAcumuladoProyectado = saldoActual;
-  for (let i = 1; i <= NUM_MESES_PROYECCION; i++) {
-    const d = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
-    const ingreso = rentaPotencialMensual;
-    const egreso = Math.round(egresoPromedio);
-    saldoAcumuladoProyectado += ingreso - egreso;
-    flujoProyectado.push({
-      mes: `${MESES_ABR[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`,
-      ingreso,
-      egreso,
-      saldo: saldoAcumuladoProyectado,
-    });
-  }
-
   // Top 5 categorías de gasto (año en curso) + "Otros", con su % del total.
   const categoriasOrdenadas = Array.from(porCategoriaEgreso.entries()).sort((a, b) => b[1] - a[1]);
   const top = categoriasOrdenadas.slice(0, 5);
@@ -373,15 +343,14 @@ export function calcularMetricas({
     }
   }
 
-  // Respaldo genérico: unidades ocupadas sin ingreso de renta este mes y sin
-  // un inquilino activo identificable (dato incompleto) — a esas no se les
-  // puede calcular una fecha límite, así que se avisa de forma genérica.
+  // Recordatorio de lo que falta por cobrar este mes: todas las unidades
+  // ocupadas que todavía no tienen un ingreso de "Renta" registrado, esté o
+  // no vencido su plazo — coexiste con la alerta de atraso de arriba (esa
+  // avisa solo cuando ya se pasó del plazo; esta avisa de lo pendiente en
+  // general, como antes).
   if (categoriaRentaId) {
     const unidadesSinRenta = unids.filter(
-      (u) =>
-        u.estado === "Ocupado" &&
-        !unidadesConRentaEsteMes.has(u.id) &&
-        !inquilinoActivoPorUnidad.has(u.id)
+      (u) => u.estado === "Ocupado" && !unidadesConRentaEsteMes.has(u.id)
     );
     if (unidadesSinRenta.length > 0) {
       const prefijo = edificioId ? "" : `${nombre} · `;
@@ -429,7 +398,6 @@ export function calcularMetricas({
     pagosDuenosTotal,
     pagosDuenosYTD,
     serieMensual,
-    flujoProyectado,
     gastosPorCategoria,
     alertas,
   };
