@@ -330,41 +330,51 @@ export function calcularMetricas({
   // El "mes cubierto" siempre se ancla al día de aniversario del contrato
   // (el mismo día que usa calcularAtrasoPago), NO al día en que se hizo el
   // pago — así, si alguien paga antes de su fecha esperada, ese pago cubre
-  // hasta la fecha esperada de ese ciclo (no "un mes después del día en que
-  // pagó", que subestimaría o sobreestimaría la mora según cuán temprano o
-  // tarde haya caído ese primer pago). El primer ciclo se ancla al ciclo
-  // vigente en el PRIMER pago de renta que ya está en el sistema para esa
-  // unidad (no a la fecha real de inicio del contrato), porque Movimientos
-  // solo tiene historial desde ene-2025 y varios contratos empezaron antes
-  // — contar desde el inicio real marcaría mora falsa por historial que
-  // nunca se migró. Si "pagado hasta" queda antes de hoy, hay mora.
+  // hasta la fecha esperada de ese ciclo.
+  //
+  // Se toma en cuenta SOLO el pago de renta más reciente de cada unidad (no
+  // se cuenta todo el historial desde el primer pago registrado): la
+  // contabilidad real tiene huecos de meses sin ningún movimiento registrado
+  // (ni renta ni ningún otro concepto) que no significan que el inquilino no
+  // pagó, sino que ese mes no quedó bien migrado al sistema. Contar de forma
+  // acumulada desde el primer pago arrastra esos huecos para siempre, aunque
+  // el inquilino esté al día hoy. Por eso solo se mira el último pago
+  // registrado y se asume que cubre su propio ciclo.
+  //
+  // Tampoco se compara "pagado hasta" contra la fecha real de hoy, sino
+  // contra la fecha de CORTE de los datos: la fecha más reciente que
+  // aparece en todo Movimientos. La contabilidad se actualiza por lotes, no
+  // en tiempo real, así que siempre hay un rezago normal entre "hoy" y "la
+  // última vez que se registró algo" — comparar contra hoy generaría mora
+  // falsa todos los meses, justo antes de que se metan los movimientos más
+  // recientes.
+  const fechaCorteStr = movs.reduce((max, m) => (m.fecha > max ? m.fecha : max), "");
+  const fechaCorte = fechaCorteStr ? new Date(fechaCorteStr + "T00:00:00") : hoy;
+
   if (categoriaRentaId) {
     for (const [unidadId, i] of inquilinoActivoPorUnidad) {
-      const pagosRenta = movs
-        .filter(
-          (m) =>
-            m.unidad_id === unidadId &&
-            m.tipo === "Ingreso" &&
-            m.categoria_id === categoriaRentaId &&
-            m.fecha >= (i.fecha_inicio_contrato as string)
-        )
-        .sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+      const pagosRenta = movs.filter(
+        (m) =>
+          m.unidad_id === unidadId &&
+          m.tipo === "Ingreso" &&
+          m.categoria_id === categoriaRentaId &&
+          m.fecha >= (i.fecha_inicio_contrato as string)
+      );
       if (pagosRenta.length === 0) continue; // sin pagos registrados: no hay base para calcular mora
 
+      const ultimoPago = pagosRenta.reduce((max, m) => (m.fecha > max.fecha ? m : max));
       const diaContrato = new Date((i.fecha_inicio_contrato as string) + "T00:00:00").getDate();
-      const primerPago = new Date(pagosRenta[0].fecha + "T00:00:00");
+      const fechaUltimoPago = new Date(ultimoPago.fecha + "T00:00:00");
 
-      // Ciclo (día de aniversario) vigente en el momento del primer pago
-      // registrado: el más reciente que sea anterior o igual a ese pago.
-      let ancla = fechaCiclo(primerPago.getFullYear(), primerPago.getMonth(), diaContrato);
-      if (ancla > primerPago) {
-        ancla = fechaCiclo(primerPago.getFullYear(), primerPago.getMonth() - 1, diaContrato);
-      }
+      // El mes en que se registró ese pago queda cubierto, sin importar si
+      // cayó antes o después del día de aniversario dentro de ese mismo mes
+      // (un pago hecho unos días antes del día esperado sigue cubriendo el
+      // ciclo normal, no adelanta un mes completo) — así que "pagado hasta"
+      // es el día de aniversario del mes siguiente al del pago.
+      const pagadoHasta = fechaCiclo(fechaUltimoPago.getFullYear(), fechaUltimoPago.getMonth() + 1, diaContrato);
 
-      const pagadoHasta = fechaCiclo(ancla.getFullYear(), ancla.getMonth() + pagosRenta.length, diaContrato);
-
-      if (pagadoHasta < hoy) {
-        const diasMora = Math.round((hoy.getTime() - pagadoHasta.getTime()) / (1000 * 60 * 60 * 24));
+      if (pagadoHasta < fechaCorte) {
+        const diasMora = Math.round((fechaCorte.getTime() - pagadoHasta.getTime()) / (1000 * 60 * 60 * 24));
         const unidad = unidadPorId.get(unidadId);
         const prefijo = edificioId ? "" : `${nombreEdificioPorId.get(unidad?.edificio_id ?? "") ?? "?"} · `;
         const codigo = unidad?.codigo ? ` (unidad ${unidad.codigo})` : "";
