@@ -115,6 +115,13 @@ export function calcularMesContrato(fechaInicioContrato: string, hoy: Date): num
   return (meses % 12) + 1;
 }
 
+// Fecha del día "diaContrato" en el mes indicado, ajustada si ese mes tiene
+// menos días (p. ej. día 31 en febrero → último día de febrero).
+function fechaCiclo(anio: number, mes: number, diaContrato: number): Date {
+  const ultimoDia = new Date(anio, mes + 1, 0).getDate();
+  return new Date(anio, mes, Math.min(diaContrato, ultimoDia));
+}
+
 const DIAS_GRACIA_RENTA = 7;
 
 export type AtrasoPago = { atrasado: boolean; diasAtraso: number };
@@ -318,26 +325,55 @@ export function calcularMetricas({
     }
   }
 
-  // Atraso en el pago de renta del mes en curso: mismo criterio que
-  // calcularAtrasoPago (día del contrato + días de gracia), pero comparado
-  // contra "hoy" en vez de contra un pago ya registrado — para las unidades
-  // con inquilino activo que todavía no registran el ingreso de este mes.
+  // Mora de renta (equivalente al "pagado hasta" del Excel): cada pago de
+  // renta registrado cubre un mes completo, sin importar el monto exacto.
+  // El "mes cubierto" siempre se ancla al día de aniversario del contrato
+  // (el mismo día que usa calcularAtrasoPago), NO al día en que se hizo el
+  // pago — así, si alguien paga antes de su fecha esperada, ese pago cubre
+  // hasta la fecha esperada de ese ciclo (no "un mes después del día en que
+  // pagó", que subestimaría o sobreestimaría la mora según cuán temprano o
+  // tarde haya caído ese primer pago). El primer ciclo se ancla al ciclo
+  // vigente en el PRIMER pago de renta que ya está en el sistema para esa
+  // unidad (no a la fecha real de inicio del contrato), porque Movimientos
+  // solo tiene historial desde ene-2025 y varios contratos empezaron antes
+  // — contar desde el inicio real marcaría mora falsa por historial que
+  // nunca se migró. Si "pagado hasta" queda antes de hoy, hay mora.
   if (categoriaRentaId) {
     for (const [unidadId, i] of inquilinoActivoPorUnidad) {
-      if (unidadesConRentaEsteMes.has(unidadId)) continue;
-      const inicio = new Date((i.fecha_inicio_contrato as string) + "T00:00:00");
-      const ultimoDiaMesHoy = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
-      const diaBase = Math.min(inicio.getDate(), ultimoDiaMesHoy);
-      const fechaLimite = new Date(hoy.getFullYear(), hoy.getMonth(), diaBase);
-      fechaLimite.setDate(fechaLimite.getDate() + DIAS_GRACIA_RENTA);
-      if (hoy > fechaLimite) {
-        const diasAtraso = Math.round((hoy.getTime() - fechaLimite.getTime()) / (1000 * 60 * 60 * 24));
+      const pagosRenta = movs
+        .filter(
+          (m) =>
+            m.unidad_id === unidadId &&
+            m.tipo === "Ingreso" &&
+            m.categoria_id === categoriaRentaId &&
+            m.fecha >= (i.fecha_inicio_contrato as string)
+        )
+        .sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+      if (pagosRenta.length === 0) continue; // sin pagos registrados: no hay base para calcular mora
+
+      const diaContrato = new Date((i.fecha_inicio_contrato as string) + "T00:00:00").getDate();
+      const primerPago = new Date(pagosRenta[0].fecha + "T00:00:00");
+
+      // Ciclo (día de aniversario) vigente en el momento del primer pago
+      // registrado: el más reciente que sea anterior o igual a ese pago.
+      let ancla = fechaCiclo(primerPago.getFullYear(), primerPago.getMonth(), diaContrato);
+      if (ancla > primerPago) {
+        ancla = fechaCiclo(primerPago.getFullYear(), primerPago.getMonth() - 1, diaContrato);
+      }
+
+      const pagadoHasta = fechaCiclo(ancla.getFullYear(), ancla.getMonth() + pagosRenta.length, diaContrato);
+
+      if (pagadoHasta < hoy) {
+        const diasMora = Math.round((hoy.getTime() - pagadoHasta.getTime()) / (1000 * 60 * 60 * 24));
         const unidad = unidadPorId.get(unidadId);
         const prefijo = edificioId ? "" : `${nombreEdificioPorId.get(unidad?.edificio_id ?? "") ?? "?"} · `;
         const codigo = unidad?.codigo ? ` (unidad ${unidad.codigo})` : "";
+        const pagadoHastaStr = pagadoHasta.toISOString().slice(0, 10);
+        // Menos de 15 días de mora queda como advertencia (puede ser solo el
+        // ritmo normal de pago de ese inquilino); más de 15, como crítica.
         alertas.push({
-          severidad: "warning",
-          mensaje: `${prefijo}${i.nombre_arrendatario}${codigo} lleva ${diasAtraso} día(s) de atraso en el pago de renta de este mes`,
+          severidad: diasMora >= 15 ? "critical" : "warning",
+          mensaje: `${prefijo}${i.nombre_arrendatario}${codigo} está en mora: renta pagada hasta ${pagadoHastaStr} (${diasMora} día(s))`,
         });
       }
     }
