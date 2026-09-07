@@ -151,8 +151,8 @@ export default async function EditarInquilinoPage({
           <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
             {pagos.length} pago(s) por {formatoCOP.format(totalPagado)} en total
             {totalAtrasos > 0
-              ? ` · ${totalAtrasos} llegó(aron) más de 10 días después de la fecha esperada`
-              : " · ninguno atrasado más de 10 días"}
+              ? ` · ${totalAtrasos} llegó(aron) más de 7 días después de la fecha esperada`
+              : " · ninguno atrasado más de 7 días"}
             .
           </p>
           <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
@@ -194,7 +194,7 @@ export default async function EditarInquilinoPage({
             Solo se muestran los pagos de renta de esta unidad hechos desde que empezó este contrato
             {siguienteInicio ? " y antes de que empezara el siguiente inquilino de esa unidad" : ""} —
             los pagos de otros inquilinos de la misma unidad no aparecen aquí. Se considera &quot;a tiempo&quot;
-            un pago hecho hasta 10 días después del mismo día del mes en que empezó el contrato. Se
+            un pago hecho hasta 7 días después del mismo día del mes en que empezó el contrato. Se
             asume que cada pago corresponde al mes en que se registró.
           </p>
         </>

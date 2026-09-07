@@ -117,7 +117,7 @@ export function calcularMesContrato(fechaInicioContrato: string, hoy: Date): num
   return (meses % 12) + 1;
 }
 
-const DIAS_GRACIA_RENTA = 10;
+const DIAS_GRACIA_RENTA = 7;
 
 export type AtrasoPago = { atrasado: boolean; diasAtraso: number };
 
