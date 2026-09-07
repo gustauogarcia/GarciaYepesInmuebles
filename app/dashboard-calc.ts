@@ -340,9 +340,48 @@ export function calcularMetricas({
     }
   }
 
+  // Inquilino con contrato activo por unidad (asume uno solo por unidad).
+  const inquilinoActivoPorUnidad = new Map<string, InquilinoAgg>();
+  for (const i of inqs) {
+    if (i.contrato_activo && i.fecha_inicio_contrato) {
+      inquilinoActivoPorUnidad.set(i.unidad_id, i);
+    }
+  }
+
+  // Atraso en el pago de renta del mes en curso: mismo criterio que
+  // calcularAtrasoPago (día del contrato + días de gracia), pero comparado
+  // contra "hoy" en vez de contra un pago ya registrado — para las unidades
+  // con inquilino activo que todavía no registran el ingreso de este mes.
+  if (categoriaRentaId) {
+    for (const [unidadId, i] of inquilinoActivoPorUnidad) {
+      if (unidadesConRentaEsteMes.has(unidadId)) continue;
+      const inicio = new Date((i.fecha_inicio_contrato as string) + "T00:00:00");
+      const ultimoDiaMesHoy = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+      const diaBase = Math.min(inicio.getDate(), ultimoDiaMesHoy);
+      const fechaLimite = new Date(hoy.getFullYear(), hoy.getMonth(), diaBase);
+      fechaLimite.setDate(fechaLimite.getDate() + DIAS_GRACIA_RENTA);
+      if (hoy > fechaLimite) {
+        const diasAtraso = Math.round((hoy.getTime() - fechaLimite.getTime()) / (1000 * 60 * 60 * 24));
+        const unidad = unidadPorId.get(unidadId);
+        const prefijo = edificioId ? "" : `${nombreEdificioPorId.get(unidad?.edificio_id ?? "") ?? "?"} · `;
+        const codigo = unidad?.codigo ? ` (unidad ${unidad.codigo})` : "";
+        alertas.push({
+          severidad: "warning",
+          mensaje: `${prefijo}${i.nombre_arrendatario}${codigo} lleva ${diasAtraso} día(s) de atraso en el pago de renta de este mes`,
+        });
+      }
+    }
+  }
+
+  // Respaldo genérico: unidades ocupadas sin ingreso de renta este mes y sin
+  // un inquilino activo identificable (dato incompleto) — a esas no se les
+  // puede calcular una fecha límite, así que se avisa de forma genérica.
   if (categoriaRentaId) {
     const unidadesSinRenta = unids.filter(
-      (u) => u.estado === "Ocupado" && !unidadesConRentaEsteMes.has(u.id)
+      (u) =>
+        u.estado === "Ocupado" &&
+        !unidadesConRentaEsteMes.has(u.id) &&
+        !inquilinoActivoPorUnidad.has(u.id)
     );
     if (unidadesSinRenta.length > 0) {
       const prefijo = edificioId ? "" : `${nombre} · `;
