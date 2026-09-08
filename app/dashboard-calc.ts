@@ -341,16 +341,12 @@ export function calcularMetricas({
   // el inquilino esté al día hoy. Por eso solo se mira el último pago
   // registrado y se asume que cubre su propio ciclo.
   //
-  // Tampoco se compara "pagado hasta" contra la fecha real de hoy, sino
-  // contra la fecha de CORTE de los datos: la fecha más reciente que
-  // aparece en todo Movimientos. La contabilidad se actualiza por lotes, no
-  // en tiempo real, así que siempre hay un rezago normal entre "hoy" y "la
-  // última vez que se registró algo" — comparar contra hoy generaría mora
-  // falsa todos los meses, justo antes de que se metan los movimientos más
-  // recientes.
-  const fechaCorteStr = movs.reduce((max, m) => (m.fecha > max ? m.fecha : max), "");
-  const fechaCorte = fechaCorteStr ? new Date(fechaCorteStr + "T00:00:00") : hoy;
-
+  // "Pagado hasta" se compara contra la fecha real de hoy (no contra una
+  // fecha de corte calculada a partir de los datos): esto es a propósito,
+  // para que si todavía no se ha registrado el pago o el movimiento más
+  // reciente en Supabase, la alerta SÍ aparezca y sirva de recordatorio para
+  // ponerse al día con la captura de información a tiempo, en vez de quedar
+  // oculta hasta que alguien cargue los movimientos atrasados.
   if (categoriaRentaId) {
     for (const [unidadId, i] of inquilinoActivoPorUnidad) {
       const pagosRenta = movs.filter(
@@ -373,8 +369,8 @@ export function calcularMetricas({
       // es el día de aniversario del mes siguiente al del pago.
       const pagadoHasta = fechaCiclo(fechaUltimoPago.getFullYear(), fechaUltimoPago.getMonth() + 1, diaContrato);
 
-      if (pagadoHasta < fechaCorte) {
-        const diasMora = Math.round((fechaCorte.getTime() - pagadoHasta.getTime()) / (1000 * 60 * 60 * 24));
+      if (pagadoHasta < hoy) {
+        const diasMora = Math.round((hoy.getTime() - pagadoHasta.getTime()) / (1000 * 60 * 60 * 24));
         const unidad = unidadPorId.get(unidadId);
         const prefijo = edificioId ? "" : `${nombreEdificioPorId.get(unidad?.edificio_id ?? "") ?? "?"} · `;
         const codigo = unidad?.codigo ? ` (unidad ${unidad.codigo})` : "";
