@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 // Selector de propiedad en forma de "chips", igual al que ya usa el
 // Dashboard. Cada sección (Unidades, Inquilinos, Movimientos, etc.) lo usa
 // para mostrar los datos de una sola propiedad a la vez — nunca mezcladas.
@@ -44,23 +46,33 @@ export function SelectorPropiedad({
 
 // Misma idea, pero como enlaces reales (navegación con ?propiedad=… en la
 // URL) para páginas que filtran del lado del servidor en vez de en el
-// navegador — hoy solo Movimientos, porque su consulta trae únicamente los
-// últimos movimientos de la propiedad elegida en vez de traer todo.
+// navegador — hoy Movimientos y Exportar, porque su consulta trae solo lo
+// de la propiedad elegida en vez de traer todo.
+//
+// Construye el href con usePathname() en vez de recibir una función por
+// prop: una función normal no se puede pasar de un Server Component a un
+// Client Component (solo Server Actions pueden cruzar esa frontera), así
+// que este componente arma su propio enlace en el navegador.
 export function SelectorPropiedadEnlace({
   edificios,
   seleccionId,
-  hrefPara,
+  parametro = "propiedad",
 }: {
   edificios: { id: string; nombre: string }[];
   seleccionId: string;
-  hrefPara: (id: string) => string;
+  parametro?: string;
 }) {
+  const pathname = usePathname();
   if (edificios.length <= 1) return null;
 
   return (
     <div className="flex flex-wrap gap-2">
       {edificios.map((e) => (
-        <a key={e.id} href={hrefPara(e.id)} className={chipClase(e.id === seleccionId)}>
+        <a
+          key={e.id}
+          href={`${pathname}?${parametro}=${e.id}`}
+          className={chipClase(e.id === seleccionId)}
+        >
           {e.nombre}
         </a>
       ))}

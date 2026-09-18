@@ -131,11 +131,7 @@ export default async function MovimientosPage({
 
       {datos && datos.edificios.length > 1 && (
         <div className="mt-6">
-          <SelectorPropiedadEnlace
-            edificios={datos.edificios}
-            seleccionId={datos.propiedadId ?? ""}
-            hrefPara={(id) => `/movimientos?propiedad=${id}`}
-          />
+          <SelectorPropiedadEnlace edificios={datos.edificios} seleccionId={datos.propiedadId ?? ""} />
         </div>
       )}
 

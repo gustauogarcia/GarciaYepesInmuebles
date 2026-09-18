@@ -26,9 +26,19 @@ async function getDatos() {
 
   if (errorEdificios || errorUnidades || errorItems) return null;
 
-  const edificiosRow = (edificios as EdificioRow[]) ?? [];
-  const unidadesRow = (unidades as UnidadRow[]) ?? [];
-  const itemsRow = (items as ItemRow[]) ?? [];
+  // Dotación solo aplica a Blanco y Negro: las propiedades de arriendo
+  // directo no llevan inventario/dotación en la app.
+  const edificiosRow = ((edificios as EdificioRow[]) ?? []).filter(
+    (e) => e.nombre === "Blanco y Negro"
+  );
+  const idsEdificiosPermitidos = new Set(edificiosRow.map((e) => e.id));
+  const unidadesRow = ((unidades as UnidadRow[]) ?? []).filter((u) =>
+    idsEdificiosPermitidos.has(u.edificio_id)
+  );
+  const idsUnidadesPermitidas = new Set(unidadesRow.map((u) => u.id));
+  const itemsRow = ((items as ItemRow[]) ?? []).filter((it) =>
+    idsUnidadesPermitidas.has(it.unidad_id)
+  );
 
   const edificiosParaForm = edificiosRow.map((e) => ({
     id: e.id,

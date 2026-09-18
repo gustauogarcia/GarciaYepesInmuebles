@@ -19,8 +19,12 @@ function esTabla(valor: string): valor is Tabla {
   return (TABLAS as readonly string[]).includes(valor);
 }
 
-export async function GET(_request: Request, { params }: { params: Promise<{ tabla: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ tabla: string }> }) {
   const { tabla } = await params;
+  // ?propiedad=<edificio_id>: para Unidades, Inquilinos y Movimientos, cada
+  // fila pertenece a una sola propiedad, así que si viene este parámetro el
+  // CSV sale filtrado a esa propiedad en vez de traer las 5 mezcladas.
+  const propiedadId = new URL(request.url).searchParams.get("propiedad");
 
   if (!esTabla(tabla)) {
     return new Response("Tabla no reconocida para exportar.", { status: 404 });
@@ -33,7 +37,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tab
     return new Response("La base de datos no está conectada.", { status: 503 });
   }
 
-  const { encabezados, filas } = await construirExportacion(supabase, tabla);
+  const { encabezados, filas } = await construirExportacion(supabase, tabla, propiedadId);
   const csv = generarCSV(encabezados, filas);
   const fecha = new Date().toISOString().slice(0, 10);
 
@@ -49,7 +53,8 @@ type Fila = (string | number | boolean | null | undefined)[];
 
 async function construirExportacion(
   supabase: SupabaseClient,
-  tabla: Tabla
+  tabla: Tabla,
+  propiedadId: string | null
 ): Promise<{ encabezados: string[]; filas: Fila[] }> {
   // Mapas de apoyo que casi todas las tablas necesitan para mostrar nombres
   // en vez de ids (igual que se hace en las pantallas de la app).
@@ -69,6 +74,14 @@ async function construirExportacion(
   const propiedadDeUnidad = (unidadId: string | null) =>
     unidadId ? nombreEdificio.get(unidadInfo.get(unidadId)?.edificio_id ?? "") ?? "" : "";
   const codigoDeUnidad = (unidadId: string | null) => (unidadId ? unidadInfo.get(unidadId)?.codigo ?? "" : "");
+  // Ids de unidad que pertenecen a la propiedad pedida por ?propiedad= — lo
+  // usan Inquilinos y Dotación, que no tienen edificio_id propio, solo
+  // unidad_id.
+  const idsUnidadDePropiedad = propiedadId
+    ? Array.from(unidadInfo.entries())
+        .filter(([, u]) => u.edificio_id === propiedadId)
+        .map(([id]) => id)
+    : null;
 
   switch (tabla) {
     case "edificios": {
@@ -90,10 +103,12 @@ async function construirExportacion(
     }
 
     case "unidades": {
-      const { data } = await supabase
+      let consulta = supabase
         .from("unidades")
         .select("edificio_id, codigo, torre, habitaciones, estado, renta_vigente")
         .order("codigo");
+      if (propiedadId) consulta = consulta.eq("edificio_id", propiedadId);
+      const { data } = await consulta;
       return {
         encabezados: ["Propiedad", "Unidad", "Torre", "Habitaciones", "Estado", "Renta vigente"],
         filas: (data ?? []).map((u) => [
@@ -108,12 +123,31 @@ async function construirExportacion(
     }
 
     case "inquilinos": {
-      const { data } = await supabase
-        .from("inquilinos")
-        .select(
-          "unidad_id, nombre_arrendatario, telefono, email, nombre_codeudor, telefono_codeudor, fecha_inicio_contrato, contrato_activo, notas"
-        )
-        .order("fecha_inicio_contrato", { ascending: false });
+      type InquilinoExport = {
+        unidad_id: string | null;
+        nombre_arrendatario: string;
+        telefono: string | null;
+        email: string | null;
+        nombre_codeudor: string | null;
+        telefono_codeudor: string | null;
+        fecha_inicio_contrato: string | null;
+        contrato_activo: boolean;
+        notas: string | null;
+      };
+      let data: InquilinoExport[] | null = [];
+      // Si se pidió una propiedad sin ninguna unidad, no hay nada que
+      // consultar — evita mandar un .in() vacío, que Postgrest rechaza.
+      if (!propiedadId || (idsUnidadDePropiedad && idsUnidadDePropiedad.length > 0)) {
+        let consulta = supabase
+          .from("inquilinos")
+          .select(
+            "unidad_id, nombre_arrendatario, telefono, email, nombre_codeudor, telefono_codeudor, fecha_inicio_contrato, contrato_activo, notas"
+          )
+          .order("fecha_inicio_contrato", { ascending: false });
+        if (idsUnidadDePropiedad) consulta = consulta.in("unidad_id", idsUnidadDePropiedad);
+        const resultado = await consulta;
+        data = resultado.data as InquilinoExport[] | null;
+      }
       return {
         encabezados: [
           "Propiedad",
@@ -143,11 +177,13 @@ async function construirExportacion(
     }
 
     case "movimientos": {
+      let consultaMovimientos = supabase
+        .from("movimientos")
+        .select("edificio_id, unidad_id, fecha, tipo, categoria_id, concepto, comprobante, monto")
+        .order("fecha", { ascending: false });
+      if (propiedadId) consultaMovimientos = consultaMovimientos.eq("edificio_id", propiedadId);
       const [{ data }, { data: categorias }] = await Promise.all([
-        supabase
-          .from("movimientos")
-          .select("edificio_id, unidad_id, fecha, tipo, categoria_id, concepto, comprobante, monto")
-          .order("fecha", { ascending: false }),
+        consultaMovimientos,
         supabase.from("categorias_movimiento").select("id, nombre"),
       ]);
       const nombreCategoria = new Map<string, string>(

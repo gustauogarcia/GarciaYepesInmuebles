@@ -27,11 +27,13 @@ export function InquilinosLista({
 }: {
   edificios: Edificio[];
   inquilinos: InquilinoRow[];
-  unidadPorId: Map<string, UnidadRow>;
+  // Objeto plano en vez de Map: los props que cruzan de un Server Component
+  // a un Client Component deben ser datos serializables sencillos.
+  unidadPorId: Record<string, UnidadRow>;
 }) {
   const [seleccion, setSeleccion] = useState(edificios[0]?.id ?? "");
   const inquilinosPropiedad = inquilinos.filter(
-    (i) => unidadPorId.get(i.unidad_id)?.edificio_id === seleccion
+    (i) => unidadPorId[i.unidad_id]?.edificio_id === seleccion
   );
 
   return (
@@ -62,7 +64,7 @@ export function InquilinosLista({
             </thead>
             <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
               {inquilinosPropiedad.map((i) => {
-                const unidad = unidadPorId.get(i.unidad_id);
+                const unidad = unidadPorId[i.unidad_id];
                 return (
                   <tr
                     key={i.id}

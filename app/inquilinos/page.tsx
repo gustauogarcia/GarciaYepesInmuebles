@@ -49,14 +49,13 @@ async function getDatos() {
       .map((u) => ({ id: u.id, codigo: u.codigo })),
   }));
 
-  const unidadPorId = new Map(((unidades as UnidadRow[]) ?? []).map((u) => [u.id, u]));
-  const edificioPorId = new Map(((edificios as EdificioRow[]) ?? []).map((e) => [e.id, e.nombre]));
+  const unidadPorId: Record<string, UnidadRow> = {};
+  for (const u of (unidades as UnidadRow[]) ?? []) unidadPorId[u.id] = u;
 
   return {
     edificios: edificiosConUnidades,
     inquilinos: (inquilinos as InquilinoRow[]) ?? [],
     unidadPorId,
-    edificioPorId,
   };
 }
 
