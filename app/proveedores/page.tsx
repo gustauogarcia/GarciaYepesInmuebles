@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { ProveedorForm } from "./ProveedorForm";
 import { crearProveedor } from "./actions";
+import { ProveedoresLista } from "./ProveedoresLista";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +20,8 @@ type ProveedorRow = {
   nombre: string;
   contacto_nombre: string | null;
   telefono: string | null;
+  edificio_id: string | null;
   categorias_proveedor: { categoria: string; subcategoria: string } | null;
-  edificios: { nombre: string } | null;
   unidades: { codigo: string } | null;
 };
 
@@ -37,7 +37,7 @@ async function getDatos() {
       supabase
         .from("proveedores")
         .select(
-          "id, nombre, contacto_nombre, telefono, categorias_proveedor(categoria, subcategoria), edificios(nombre), unidades(codigo)"
+          "id, nombre, contacto_nombre, telefono, edificio_id, categorias_proveedor(categoria, subcategoria), unidades(codigo)"
         )
         .order("nombre"),
     ]);
@@ -46,13 +46,18 @@ async function getDatos() {
 
   const grupos = agruparCategorias((categorias as CategoriaRow[]) ?? []);
 
-  const edificiosConUnidades = ((edificios as EdificioRow[]) ?? []).map((e) => ({
-    id: e.id,
-    nombre: e.nombre,
-    unidades: ((unidades as (UnidadRow & { edificio_id: string })[]) ?? [])
-      .filter((u) => u.edificio_id === e.id)
-      .map((u) => ({ id: u.id, codigo: u.codigo })),
-  }));
+  // Proveedores solo aplica a Blanco y Negro: las propiedades de arriendo
+  // directo (Kostamar, Ufinet, Art Living, Estadio) no llevan proveedores
+  // propios en la app, así que ni siquiera se ofrecen como opción aquí.
+  const edificiosConUnidades = ((edificios as EdificioRow[]) ?? [])
+    .filter((e) => e.nombre === "Blanco y Negro")
+    .map((e) => ({
+      id: e.id,
+      nombre: e.nombre,
+      unidades: ((unidades as (UnidadRow & { edificio_id: string })[]) ?? [])
+        .filter((u) => u.edificio_id === e.id)
+        .map((u) => ({ id: u.id, codigo: u.codigo })),
+    }));
 
   return {
     grupos,
@@ -95,53 +100,8 @@ export default async function ProveedoresPage() {
             <ProveedorForm grupos={datos.grupos} edificios={datos.edificios} accion={crearProveedor} />
           </div>
 
-          <h2 className="mt-10 text-lg font-medium text-stone-900 dark:text-stone-50">
-            {datos.proveedores.length === 0
-              ? "Todavía no hay proveedores registrados."
-              : `${datos.proveedores.length} proveedor(es) registrado(s)`}
-          </h2>
-
-          {datos.proveedores.length > 0 && (
-            <div className="mt-4 overflow-x-auto rounded-xl border border-stone-200 shadow-sm dark:border-stone-800">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-stone-100 text-xs uppercase tracking-wide text-stone-500 dark:bg-stone-900">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Nombre</th>
-                    <th className="px-4 py-3 font-medium">Categoría</th>
-                    <th className="px-4 py-3 font-medium">Edificio / apto</th>
-                    <th className="px-4 py-3 font-medium">Contacto</th>
-                    <th className="px-4 py-3 font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
-                  {datos.proveedores.map((p) => (
-                    <tr key={p.id} className="bg-white transition-colors hover:bg-stone-50 dark:bg-stone-950 dark:hover:bg-stone-900/60">
-                      <td className="px-4 py-3 font-medium text-stone-900 dark:text-stone-50">
-                        {p.nombre}
-                      </td>
-                      <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
-                        {p.categorias_proveedor?.subcategoria ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
-                        {p.edificios?.nombre ?? "—"}
-                        {p.unidades?.codigo ? ` · Apto ${p.unidades.codigo}` : ""}
-                      </td>
-                      <td className="px-4 py-3 text-stone-600 dark:text-stone-400">
-                        {p.contacto_nombre ?? p.telefono ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          href={`/proveedores/${p.id}`}
-                          className="text-xs font-medium text-stone-600 underline hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-50"
-                        >
-                          Editar
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {datos.edificios.length > 0 && (
+            <ProveedoresLista edificios={datos.edificios} proveedores={datos.proveedores} />
           )}
         </>
       )}
